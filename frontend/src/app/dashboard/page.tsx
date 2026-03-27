@@ -56,7 +56,7 @@ export default function DashboardPage() {
 
     setLoadingWallet(true);
     try {
-      const response = await fetch('/api/wallet');
+      const response = await fetch(`/api/wallet`);
       const data = (await response.json()) as {
         walletAddress?: string | null;
         wallets?: WalletItem[];
@@ -109,7 +109,7 @@ export default function DashboardPage() {
         .map((url) => url.trim())
         .filter((url) => Boolean(url));
 
-      const response = await fetch('/api/campaigns', {
+      const response = await fetch(`/api/campaigns`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -174,7 +174,7 @@ export default function DashboardPage() {
         return;
       }
 
-      const response = await fetch('/api/wallet', {
+      const response = await fetch(`/api/wallet`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -2,7 +2,7 @@ import { auth } from '@/auth';
 import { NextResponse } from 'next/server';
 
 const backendApiUrl =
-  process.env.BACKEND_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api';
+  process.env.BACKEND_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000/api';
 
 const getInternalHeaders = (email: string, internalSecret: string) => ({
   'Content-Type': 'application/json',
