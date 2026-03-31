@@ -42,6 +42,19 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         token.providerId = account.providerAccountId;
       }
 
+      const adminEnv = process.env.ADMIN_EMAILS ?? "";
+      const adminEmails = adminEnv
+        .split(",")
+        .map((email) => email.trim().toLowerCase())
+        .filter(Boolean);
+
+      if (token.email && adminEmails.length > 0) {
+        const isAdmin = adminEmails.includes(String(token.email).toLowerCase());
+        token.role = isAdmin ? "admin" : "user";
+      } else if (!token.role) {
+        token.role = "user";
+      }
+
       return token;
     },
     async session({ session, token }) {
@@ -52,6 +65,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         session.user.provider = typeof token.provider === "string" ? token.provider : undefined;
         session.user.providerId =
           typeof token.providerId === "string" ? token.providerId : undefined;
+        session.user.role = typeof token.role === "string" ? (token.role as "admin" | "user") : undefined;
       }
       return session;
     },

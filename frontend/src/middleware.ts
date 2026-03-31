@@ -10,10 +10,21 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
-  // Bảo vệ dashboard - chỉ cho phép người dùng đã đăng nhập
-  if (pathname.startsWith("/dashboard")) {
+  // Bảo vệ các route cần đăng nhập (user thường)
+  if (pathname.startsWith("/dashboard") || pathname.startsWith("/wallet")) {
     if (!token) {
       return NextResponse.redirect(new URL("/login", request.url));
+    }
+  }
+
+  // Bảo vệ route dành riêng cho admin
+  if (pathname.startsWith("/admin")) {
+    if (!token) {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+
+    if (token.role !== "admin") {
+      return NextResponse.redirect(new URL("/", request.url));
     }
   }
 
@@ -26,5 +37,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/login"],
+  matcher: ["/dashboard/:path*", "/wallet/:path*", "/admin/:path*", "/login"],
 };

@@ -7,6 +7,7 @@ declare module "next-auth" {
       id?: string;
       provider?: string;
       providerId?: string;
+      role?: "admin" | "user";
     };
   }
 }
@@ -15,5 +16,6 @@ declare module "next-auth/jwt" {
   interface JWT {
     provider?: string;
     providerId?: string;
+     role?: "admin" | "user";
   }
 }
