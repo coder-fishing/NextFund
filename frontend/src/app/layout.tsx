@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthSessionProvider } from "@/components/AuthSessionProvider";
+import Navbar from "@/components/Nav/Navbar";
+import { auth } from "@/auth";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,16 +20,21 @@ export const metadata: Metadata = {
   description: "Ứng dụng Next.js với OAuth authentication",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth();
+  
   return (
     <html lang="vi" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="antialiased">
-        <AuthSessionProvider>
-          {children}
+        <AuthSessionProvider session={session}>
+          <Navbar />
+          <main className="min-h-[calc(100vh-4rem)]">
+            {children}
+          </main>
         </AuthSessionProvider>
       </body>
     </html>
