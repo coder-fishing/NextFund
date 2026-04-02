@@ -79,8 +79,8 @@ export const ImageRound = ({
             x2={size}
             y2="0"
           >
-            <stop offset="0%" stopColor="#CFF4D2" />
-            <stop offset="100%" stopColor="#0a5a39" />
+            <stop offset="0%" stopColor="#A9F56B" />
+            <stop offset="100%" stopColor="#4B9E44" />
           </linearGradient>
         </defs>
 
