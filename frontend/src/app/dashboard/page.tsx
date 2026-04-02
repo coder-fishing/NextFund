@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import Navbar from '@/components/Nav/Navbar';
 import HeroSection from '@/components/Hero/HerroSection';
 import ETHSection from '@/components/ETH/ETHSection';
+import { FundraisersSection } from '@/components/Fundraisers/FundraisersSection';
 interface EthereumProvider {
   request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
 }
@@ -226,7 +227,9 @@ export default function DashboardPage() {
   return (
     <>
       <HeroSection/>
-       {/* <ETHSection /> */}
+      <ETHSection />
+      <FundraisersSection />
+
     </>
   );
 }
