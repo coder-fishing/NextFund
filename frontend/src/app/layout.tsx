@@ -3,6 +3,7 @@ import { Mulish } from "next/font/google";
 import "./globals.css";
 import { AuthSessionProvider } from "@/components/AuthSessionProvider";
 import Navbar from "@/components/Nav/Navbar";
+import Footer from "@/components/Footer/Footer";
 import { auth } from "@/auth";
 
 const mulish = Mulish({
@@ -30,6 +31,7 @@ export default async function RootLayout({
           <main className="min-h-[calc(100vh-4rem)]">
             {children}
           </main>
+          <Footer /> 
         </AuthSessionProvider>
       </body>
     </html>
