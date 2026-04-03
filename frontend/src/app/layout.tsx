@@ -1,18 +1,13 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Mulish } from "next/font/google";
 import "./globals.css";
 import { AuthSessionProvider } from "@/components/AuthSessionProvider";
 import Navbar from "@/components/Nav/Navbar";
 import { auth } from "@/auth";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const mulish = Mulish({
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -28,8 +23,8 @@ export default async function RootLayout({
   const session = await auth();
   
   return (
-    <html lang="vi" className={`${geistSans.variable} ${geistMono.variable}`}>
-      <body className="antialiased">
+    <html lang="vi">
+      <body className={`${mulish.className} antialiased`}>
         <AuthSessionProvider session={session}>
           <Navbar />
           <main className="min-h-[calc(100vh-4rem)]">
