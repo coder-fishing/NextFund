@@ -8,6 +8,7 @@ import HeroSection from '@/components/Hero/HerroSection';
 import ETHSection from '@/components/ETH/ETHSection';
 import { FundraisersSection } from '@/components/Fundraisers/FundraisersSection';
 import StepSection from '@/components/Step/StepSection';
+import { FeaturedTopicsSection } from '@/components/FeatureTopic/FeaturedTopicsSection';
 interface EthereumProvider {
   request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
 }
@@ -231,7 +232,7 @@ export default function DashboardPage() {
       <ETHSection />
       <StepSection />
       <FundraisersSection />
-
+      <FeaturedTopicsSection />
     </>
   );
 }
