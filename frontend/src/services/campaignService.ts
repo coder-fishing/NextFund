@@ -1,10 +1,22 @@
+export type CampaignCategory =
+  | "medical"
+  | "education"
+  | "emergency"
+  | "animals"
+  | "community"
+  | "general";
+
 export type Campaign = {
   _id: string;
   title: string;
   description: string;
+  category?: CampaignCategory;
   goalAmount: number;
   currentAmount: number;
   image?: string[];
+  status?: "active" | "completed" | "cancelled" | "approved" | "rejected" | "pending";
+  creator?: string;
+  receiveWalletAddress?: string;
   createdAt?: string;
   endDate?: string;
 };
@@ -40,7 +52,7 @@ export async function getLatestCampaigns(limit = 5): Promise<Campaign[]> {
 
     const campaigns: Campaign[] = data.campaigns
       .slice()
-      .sort((a, b) => {
+      .sort((a: Campaign, b: Campaign) => {
         const dateA = new Date(a.createdAt ?? a.endDate ?? 0).getTime();
         const dateB = new Date(b.createdAt ?? b.endDate ?? 0).getTime();
         return dateB - dateA;
@@ -52,5 +64,52 @@ export async function getLatestCampaigns(limit = 5): Promise<Campaign[]> {
     return campaigns.slice(0, limit);
   } catch {
     return [];
+  }
+}
+
+export async function getApprovedCampaigns(category?: CampaignCategory | "all"): Promise<Campaign[]> {
+  try {
+    const categoryQuery = category && category !== "all" ? `?category=${category}` : "";
+    const res = await fetch(`${backendApiUrl}/campaigns/approved${categoryQuery}`);
+
+    if (!res.ok) {
+      return [];
+    }
+
+    const data = await res.json();
+
+    if (!Array.isArray(data?.campaigns)) {
+      return [];
+    }
+
+    return data.campaigns
+      .slice()
+      .sort((a: Campaign, b: Campaign) => {
+        const dateA = new Date(a.createdAt ?? a.endDate ?? 0).getTime();
+        const dateB = new Date(b.createdAt ?? b.endDate ?? 0).getTime();
+        return dateB - dateA;
+      });
+  } catch {
+    return [];
+  }
+}
+
+export async function getCampaignById(id: string): Promise<Campaign | null> {
+  try {
+    const res = await fetch(`${backendApiUrl}/campaigns/${id}`);
+
+    if (!res.ok) {
+      return null;
+    }
+
+    const data = await res.json();
+
+    if (!data?.campaign || typeof data.campaign !== "object") {
+      return null;
+    }
+
+    return data.campaign as Campaign;
+  } catch {
+    return null;
   }
 }
