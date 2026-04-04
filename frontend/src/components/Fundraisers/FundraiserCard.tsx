@@ -5,15 +5,29 @@ import { ProgressBar } from "../Hero/ProgressBar";
 type Props = {
     title: string;
     image: string;
+    description?: string;
     goalAmount: number;
     currentAmount: number;
     time?: string;
+    amountUnit?: string;
     variant?: 'large' | 'small';
 }
 
-export const FundraiserCard = ({ title, image, goalAmount, currentAmount, time, variant = 'small' }: Props) => {
+export const FundraiserCard = ({
+    title,
+    image,
+    description,
+    goalAmount,
+    currentAmount,
+    time,
+    amountUnit = '$',
+    variant = 'small'
+}: Props) => {
     const isLarge = variant === 'large';
-    const progress = (currentAmount / goalAmount) * 100;
+    const progress =
+        goalAmount > 0
+            ? Math.min(100, Math.max(0, (currentAmount / goalAmount) * 100))
+            : 0;
 
     return (
         <div className={`group cursor-pointer bg-[#F9FAFB] transition-shadow duration-200 overflow-hidden flex flex-col ${isLarge ? 'h-full' : ''}`}>
@@ -46,14 +60,20 @@ export const FundraiserCard = ({ title, image, goalAmount, currentAmount, time, 
                     </div>
                 </div>
 
+                {description && (
+                    <p className="mt-2 line-clamp-2 text-sm text-gray-600">
+                        {description}
+                    </p>
+                )}
+
                 {/* Progress */}
                 <div className="mt-2">
-                    <ProgressBar value={(currentAmount / goalAmount) * 100} />
+                    <ProgressBar value={progress} />
                 </div>
 
                 <div className="mt-2 flex items-center justify-between text-xs text-gray-600">
                     <span>
-                        ${currentAmount.toLocaleString()} raised of ${goalAmount.toLocaleString()}
+                        {amountUnit}{currentAmount.toLocaleString()} raised of {amountUnit}{goalAmount.toLocaleString()}
                     </span>
                 </div>
             </div>

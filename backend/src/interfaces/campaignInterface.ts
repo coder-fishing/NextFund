@@ -4,6 +4,8 @@ export interface ICampaign extends Document {
     title: string,
     description: string,
 
+    category: string,
+
     goalAmount: number,
     currentAmount: number,
 

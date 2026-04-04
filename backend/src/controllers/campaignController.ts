@@ -7,11 +7,21 @@ import Wallet from "../models/Wallet.js";
 interface CreateCampaignBody {
   title?: string;
   description?: string;
+  category?: string;
   goalAmount?: number;
   endDate?: string;
   image?: string[];
   receiveWalletAddress?: string;
 }
+
+const allowedCategories = new Set([
+  "medical",
+  "education",
+  "emergency",
+  "animals",
+  "community",
+  "general",
+]);
 
 // Create
 
@@ -20,7 +30,7 @@ export const createCampaign = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { title, description, goalAmount, endDate, image, receiveWalletAddress } =
+    const { title, description, category, goalAmount, endDate, image, receiveWalletAddress } =
       req.body as CreateCampaignBody;
 
     if (!title || !description || !goalAmount || !endDate || !receiveWalletAddress) {
@@ -63,9 +73,16 @@ export const createCampaign = async (
       return;
     }
 
+    const normalizedCategory = (category ?? "general").trim().toLowerCase();
+    if (!allowedCategories.has(normalizedCategory)) {
+      res.status(400).json({ message: "Invalid category" });
+      return;
+    }
+
     const campaign = await Campaign.create({
       title,
       description,
+      category: normalizedCategory,
       goalAmount: Number(goalAmount),
       endDate: parsedEndDate,
       image: Array.isArray(image) ? image : [],
@@ -128,7 +145,22 @@ export const getCampaignByUserEmail = async (req: AuthRequest, res: Response): P
 
 export const getApprovedCampaigns = async (_req: AuthRequest | null, res: Response): Promise<void> => {
     try {
-        const campaigns = await Campaign.find({ status: "approved" });
+    const categoryQuery = _req?.query?.category;
+    let categoryFilter: string | undefined;
+
+    if (typeof categoryQuery === "string" && categoryQuery.trim() !== "") {
+      const normalizedCategory = categoryQuery.trim().toLowerCase();
+      if (!allowedCategories.has(normalizedCategory)) {
+        res.status(400).json({ message: "Invalid category" });
+        return;
+      }
+      categoryFilter = normalizedCategory;
+    }
+
+    const campaigns = await Campaign.find({
+      status: "approved",
+      ...(categoryFilter ? { category: categoryFilter } : {}),
+    });
         res.status(200).json({ campaigns });
     } catch (error) {
         console.error("Error fetching approved campaigns:", error);
