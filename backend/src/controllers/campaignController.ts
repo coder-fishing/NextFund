@@ -88,7 +88,7 @@ export const createCampaign = async (
       image: Array.isArray(image) ? image : [],
       creator,
       receiveWalletAddress: normalizedReceiveWalletAddress,
-      status: "pending",
+      status: "approved",
     });
 
     res.status(201).json({

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { PrimaryButton } from "@/components/Button/PrimaryButton";
 import { SecondaryButton } from "@/components/Button/SecondaryButton";
@@ -10,6 +11,7 @@ import { categoryOptions, CategoryFilter, heroCopyByCategory } from "@/const/cam
 import { getDaysLeft } from "@/utils/campaignDate";
 
 export default function CampaignsPage() {
+  const router = useRouter();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -57,7 +59,11 @@ export default function CampaignsPage() {
           <p className="mt-4 max-w-xl text-lg text-slate-600">{heroCopy.subtitle}</p>
 
           <div className="mt-6">
-            <PrimaryButton type="button" className="px-6 py-3 text-sm">
+            <PrimaryButton
+              type="button"
+              className="px-6 py-3 text-sm"
+              onClick={() => router.push("/campaigns/create")}
+            >
               Start a Fundraiser
             </PrimaryButton>
           </div>
