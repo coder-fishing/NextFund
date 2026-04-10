@@ -13,6 +13,8 @@ export type Campaign = {
   category?: CampaignCategory;
   goalAmount: number;
   currentAmount: number;
+  goalAmountWei?: string;
+  currentAmountWei?: string;
   image?: string[];
   status?: "active" | "completed" | "cancelled" | "approved" | "rejected" | "pending";
   creator?: string;

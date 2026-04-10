@@ -7,12 +7,26 @@ import { PrimaryButton } from "@/components/Button/PrimaryButton";
 import { ProgressBar } from "@/components/Hero/ProgressBar";
 import { Campaign, getCampaignById } from "@/services/campaignService";
 import { getDaysLeft } from "@/utils/campaignDate";
-import { formatDate, formatVnd } from "@/utils/campaignFormat";
+import { formatDate } from "@/utils/campaignFormat";
+import { ethers } from "ethers";
+import { DONATION_CONTRACT_ADDRESS, DONATION_CONTRACT_ABI } from "@/const/donationContract";
 
 type DetailState = {
   loading: boolean;
   error: string | null;
   campaign: Campaign | null;
+};
+
+type EthereumProvider = {
+  request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
+};
+
+const toEthAmount = (amountWei?: string, fallback = 0): number => {
+  if (amountWei && /^\d+$/.test(amountWei)) {
+    return Number(ethers.formatEther(amountWei));
+  }
+
+  return fallback;
 };
 
 export default function CampaignDetailPage() {
@@ -24,6 +38,12 @@ export default function CampaignDetailPage() {
     error: null,
     campaign: null,
   });
+  const [donateEth, setDonateEth] = useState("0.001");
+  const [donating, setDonating] = useState(false);
+  const [donateError, setDonateError] = useState<string | null>(null);
+  const [donateSuccess, setDonateSuccess] = useState<string | null>(null);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [walletBalanceEth, setWalletBalanceEth] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) {
@@ -82,13 +102,166 @@ export default function CampaignDetailPage() {
     };
   }, [id]);
 
-  const progress = useMemo(() => {
-    if (!state.campaign || state.campaign.goalAmount <= 0) return 0;
-    return Math.min(
-      100,
-      Math.max(0, (state.campaign.currentAmount / state.campaign.goalAmount) * 100)
-    );
+  const goalEth = useMemo(() => {
+    if (!state.campaign) return 0;
+    return toEthAmount(state.campaign.goalAmountWei, state.campaign.goalAmount);
   }, [state.campaign]);
+
+  const raisedEth = useMemo(() => {
+    if (!state.campaign) return 0;
+    return toEthAmount(state.campaign.currentAmountWei, state.campaign.currentAmount);
+  }, [state.campaign]);
+
+  const progress = useMemo(() => {
+    if (goalEth <= 0) return 0;
+    return Math.min(100, Math.max(0, (raisedEth / goalEth) * 100));
+  }, [goalEth, raisedEth]);
+
+  const fetchWalletBalance = async (
+    provider: ethers.BrowserProvider,
+    address: string
+  ): Promise<void> => {
+    const balance = await provider.getBalance(address);
+    setWalletBalanceEth(Number(ethers.formatEther(balance)).toFixed(6));
+  };
+
+  const handleCheckBalance = async () => {
+    setDonateError(null);
+
+    const ethereum = (window as Window & { ethereum?: EthereumProvider }).ethereum;
+    if (!ethereum) {
+      setDonateError("MetaMask not found.");
+      return;
+    }
+
+    try {
+      await ethereum.request({ method: "eth_requestAccounts" });
+      const provider = new ethers.BrowserProvider(
+        ethereum as unknown as ethers.Eip1193Provider
+      );
+      const signer = await provider.getSigner();
+      const address = await signer.getAddress();
+
+      setWalletAddress(address);
+      await fetchWalletBalance(provider, address);
+    } catch (error) {
+      setDonateError(error instanceof Error ? error.message : "Unable to fetch wallet balance.");
+    }
+  };
+
+  const toOnChainCampaignId = (campaignId: string): bigint => {
+    if (!/^[a-fA-F0-9]{24}$/.test(campaignId)) {
+      throw new Error("Invalid campaign id format.");
+    }
+
+    return BigInt(`0x${campaignId}`);
+  };
+
+  const handleDonate = async () => {
+    setDonateError(null);
+    setDonateSuccess(null);
+
+    if (!state.campaign) {
+      setDonateError("Campaign is not loaded.");
+      return;
+    }
+
+    if (!state.campaign.receiveWalletAddress) {
+      setDonateError("Campaign receiver wallet is missing.");
+      return;
+    }
+
+    if (!DONATION_CONTRACT_ADDRESS) {
+      setDonateError("Missing NEXT_PUBLIC_DONATION_CONTRACT in frontend env.");
+      return;
+    }
+
+    if (!donateEth || Number(donateEth) <= 0) {
+      setDonateError("Please enter a valid ETH amount.");
+      return;
+    }
+
+    const ethereum = (window as Window & { ethereum?: EthereumProvider }).ethereum;
+
+    if (!ethereum) {
+      setDonateError("MetaMask not found.");
+      return;
+    }
+
+    setDonating(true);
+
+    try {
+      await ethereum.request({ method: "eth_requestAccounts" });
+
+      const chainIdHex = (await ethereum.request({ method: "eth_chainId" })) as string;
+      const sepoliaChainId = "0xaa36a7";
+
+      if (chainIdHex !== sepoliaChainId) {
+        await ethereum.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: sepoliaChainId }],
+        });
+      }
+
+      const provider = new ethers.BrowserProvider(
+        ethereum as unknown as ethers.Eip1193Provider
+      );
+      const signer = await provider.getSigner();
+      const donorAddress = await signer.getAddress();
+      setWalletAddress(donorAddress);
+      await fetchWalletBalance(provider, donorAddress);
+
+      const contract = new ethers.Contract(
+        DONATION_CONTRACT_ADDRESS,
+        DONATION_CONTRACT_ABI,
+        signer
+      );
+
+      const campaignIdOnChain = toOnChainCampaignId(state.campaign._id);
+
+      const tx = await contract.donate(
+        state.campaign.receiveWalletAddress,
+        campaignIdOnChain,
+        {
+          value: ethers.parseEther(donateEth),
+        }
+      );
+
+      const receipt = await tx.wait();
+      const txHash = receipt?.hash ?? tx.hash;
+
+      const response = await fetch("/api/donations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          campaignId: state.campaign._id,
+          txHash,
+          walletAddress: donorAddress,
+        }),
+      });
+
+      const data = (await response.json()) as { message?: string };
+
+      if (!response.ok) {
+        throw new Error(data.message ?? "Saved on-chain, but failed to save donation in DB.");
+      }
+
+      setDonateSuccess(`Donate success. Tx hash: ${txHash}`);
+      await fetchWalletBalance(provider, donorAddress);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Donate failed.";
+
+      if (message.toLowerCase().includes("insufficient funds")) {
+        setDonateError("Insufficient Sepolia ETH for amount + gas fee. Please lower amount or top up test ETH.");
+      } else {
+        setDonateError(message);
+      }
+    } finally {
+      setDonating(false);
+    }
+  };
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -140,9 +313,9 @@ export default function CampaignDetailPage() {
               <div>
                 <p className="text-sm text-slate-500">Raised</p>
                 <p className="text-2xl font-bold text-slate-900">
-                  {formatVnd(state.campaign.currentAmount)} VND
+                  {raisedEth.toFixed(4)} ETH
                 </p>
-                <p className="text-sm text-slate-600">Goal {formatVnd(state.campaign.goalAmount)} VND</p>
+                <p className="text-sm text-slate-600">Goal {goalEth.toFixed(4)} ETH</p>
               </div>
 
               <div>
@@ -159,8 +332,49 @@ export default function CampaignDetailPage() {
                 </p>
               </div>
 
-              <PrimaryButton type="button" className="w-full px-5 py-3 text-sm">
-                Donate now (next step)
+              <div className="space-y-2">
+                <label htmlFor="donate-eth" className="block text-sm font-medium text-slate-700">
+                  Amount (ETH)
+                </label>
+                <input
+                  id="donate-eth"
+                  type="number"
+                  min="0"
+                  step="0.0001"
+                  value={donateEth}
+                  onChange={(event) => setDonateEth(event.target.value)}
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
+                  placeholder="0.001"
+                />
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-slate-500">
+                    {walletAddress
+                      ? `Wallet: ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`
+                      : "Wallet: not connected"}
+                  </p>
+                  <button
+                    type="button"
+                    className="text-xs font-medium text-slate-700 underline underline-offset-2"
+                    onClick={handleCheckBalance}
+                  >
+                    Check balance
+                  </button>
+                </div>
+                <p className="text-xs text-slate-500">
+                  Balance: {walletBalanceEth ? `${walletBalanceEth} ETH` : "--"}
+                </p>
+              </div>
+
+              {donateError && <p className="text-sm text-red-600">{donateError}</p>}
+              {donateSuccess && <p className="break-all text-sm text-emerald-700">{donateSuccess}</p>}
+
+              <PrimaryButton
+                type="button"
+                className="w-full px-5 py-3 text-sm"
+                onClick={handleDonate}
+                disabled={donating}
+              >
+                {donating ? "Processing..." : "Donate now"}
               </PrimaryButton>
             </div>
           </div>
