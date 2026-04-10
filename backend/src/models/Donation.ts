@@ -6,28 +6,50 @@ const donationSchema = new Schema<IDonation>(
         userId: {
             type: Schema.Types.ObjectId,
             ref: "User",
-            required: true
+            required: false,
         },
         campaignId: {
             type: Schema.Types.ObjectId,
             ref: "Campaign",
             required: true,
         },
+        campaignIdOnChain: {
+            type: String,
+            required: false,
+        },
         walletAddress: {
             type: String,
             required: true,
+            lowercase: true,
+            trim: true,
         },
-        amount: {
-            type: Number,
+        amountWei: {
+            type: String,
+            required: true,
+        },
+        amountEth: {
+            type: String,
             required: true,
         },
         txHash: {
             type: String,
             required: true,
+            lowercase: true,
+            trim: true,
+        },
+        blockNumber: {
+            type: Number,
+            required: false,
+        },
+        logIndex: {
+            type: Number,
+            required: false,
         },
 
     },
     { timestamps: true,}
 )
+
+donationSchema.index({ txHash: 1, logIndex: 1 }, { unique: true });
 
 export default mongoose.model<IDonation>("Donation", donationSchema);
