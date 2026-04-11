@@ -17,6 +17,7 @@ const campaignSchema = new Schema<ICampaign>(
         receiveWalletAddress: { type: String, required: true },
         status: { type: String, enum: ['active', 'completed', 'cancelled', 'approved', 'rejected', 'pending'], default: 'pending' },
         endDate: { type: Date, required: true },
+        deletedAt: { type: Date, default: null },
     },
     { timestamps: true }
 )

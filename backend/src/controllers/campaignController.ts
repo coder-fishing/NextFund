@@ -105,7 +105,7 @@ export const createCampaign = async (
 
 export const getCampaigns = async (_req: AuthRequest | null, res: Response): Promise<void> => {
   try {
-    const campaigns = await Campaign.find();
+    const campaigns = await Campaign.find({ deletedAt: null });
     res.status(200).json({ campaigns });
     } catch (error) {
     console.error("Error fetching campaigns:", error);
@@ -116,7 +116,7 @@ export const getCampaigns = async (_req: AuthRequest | null, res: Response): Pro
 export const getCampaignById = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const campaign = await Campaign.findById(id);
+    const campaign = await Campaign.findOne({ _id: id, deletedAt: null });
     if (!campaign) {
         res.status(404).json({ message: "Campaign not found" });
         return;
@@ -135,7 +135,31 @@ export const getCampaignByUserEmail = async (req: AuthRequest, res: Response): P
             res.status(401).json({ message: "Invalid token payload" });
             return;
         }
-        const campaigns = await Campaign.find({ creator: userEmail });
+
+        const filter =
+          typeof req.query.filter === "string"
+            ? req.query.filter.trim().toLowerCase()
+            : "all";
+
+        if (!["all", "active", "expired", "deleted"].includes(filter)) {
+          res.status(400).json({ message: "Invalid filter" });
+          return;
+        }
+
+        const now = new Date();
+        const query: Record<string, unknown> = { creator: userEmail };
+
+        if (filter === "deleted") {
+          query.deletedAt = { $ne: null };
+        } else if (filter === "active") {
+          query.deletedAt = null;
+          query.endDate = { $gte: now };
+        } else if (filter === "expired") {
+          query.deletedAt = null;
+          query.endDate = { $lt: now };
+        }
+
+        const campaigns = await Campaign.find(query).sort({ createdAt: -1 });
         res.status(200).json({ campaigns });
     } catch (error) {
         console.error("Error fetching user's campaigns:", error);
@@ -159,6 +183,7 @@ export const getApprovedCampaigns = async (_req: AuthRequest | null, res: Respon
 
     const campaigns = await Campaign.find({
       status: "approved",
+      deletedAt: null,
       ...(categoryFilter ? { category: categoryFilter } : {}),
     });
         res.status(200).json({ campaigns });
@@ -227,12 +252,28 @@ export const updateCampaignStatus = async (req: AuthRequest, res: Response): Pro
 export const deleteCampaign = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
-        const campaign = await Campaign.findByIdAndDelete(id);
+    const userEmail = req.user?.email;
+
+    if (!userEmail) {
+      res.status(401).json({ message: "Invalid token payload" });
+      return;
+    }
+
+    const campaign = await Campaign.findOne({ _id: id, creator: userEmail });
         if (!campaign) {
             res.status(404).json({ message: "Campaign not found" });
             return;
         }
-        res.status(200).json({ message: "Campaign deleted" });
+
+    if (campaign.deletedAt) {
+      res.status(400).json({ message: "Campaign already deleted" });
+      return;
+    }
+
+    campaign.deletedAt = new Date();
+    await campaign.save();
+
+    res.status(200).json({ message: "Campaign deleted" });
     } catch (error) {
         console.error("Error deleting campaign:", error);
         res.status(500).json({ message: "Error deleting campaign", error });
