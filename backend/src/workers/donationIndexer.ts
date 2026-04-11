@@ -25,7 +25,7 @@ const getConfig = () => {
   const pollMs = Number(process.env.INDEXER_POLL_MS ?? "2000");
   const maxBlockRange = Number(process.env.INDEXER_MAX_BLOCK_RANGE ?? "10");
   const maxWindowsPerTick = Number(process.env.INDEXER_MAX_WINDOWS_PER_TICK ?? "3");
-  const rateLimitBackoffMs = Number(process.env.INDEXER_RATE_LIMIT_BACKOFF_MS ?? "30000");
+  const rateLimitBackoffMs = Number(process.env.INDEXER_RATE_LIMIT_BACKOFF_MS ?? "3000");
 
   return {
     rpcUrl,
