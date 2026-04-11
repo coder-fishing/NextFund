@@ -80,7 +80,7 @@ export function UserMenu({ name, email, image }: UserMenuProps) {
                My Wallet
             </Link>
             <Link
-              href="/dashboard"
+              href="/campaigns/mycampaigns"
               onClick={() => setIsOpen(false)}
               className="block px-4 py-2 text-sm text-gray-700 hover:bg-slate-50 transition-colors"
             >
