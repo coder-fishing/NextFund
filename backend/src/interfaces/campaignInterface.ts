@@ -16,6 +16,7 @@ export interface ICampaign extends Document {
 
     status: string, // active | completed | cancelled | approved | rejected | pending
     endDate: Date,
+    deletedAt?: Date | null,
 
     createdAt: Date,
     updatedAt: Date

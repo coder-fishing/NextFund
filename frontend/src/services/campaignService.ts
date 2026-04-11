@@ -21,7 +21,10 @@ export type Campaign = {
   receiveWalletAddress?: string;
   createdAt?: string;
   endDate?: string;
+  deletedAt?: string | null;
 };
+
+export type MyCampaignFilter = "all" | "active" | "expired" | "deleted";
 
 // URL backend chuyên cho campaign; KHÔNG dùng NEXT_PUBLIC_API_URL để tránh trỏ nhầm sang frontend
 const backendApiUrl =
@@ -113,5 +116,39 @@ export async function getCampaignById(id: string): Promise<Campaign | null> {
     return data.campaign as Campaign;
   } catch {
     return null;
+  }
+}
+
+export async function getMyCampaigns(filter: MyCampaignFilter = "all"): Promise<Campaign[]> {
+  try {
+    const res = await fetch(`/api/campaigns/my?filter=${encodeURIComponent(filter)}`, {
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      return [];
+    }
+
+    const data = await res.json();
+
+    if (!Array.isArray(data?.campaigns)) {
+      return [];
+    }
+
+    return data.campaigns;
+  } catch {
+    return [];
+  }
+}
+
+export async function deleteMyCampaign(id: string): Promise<boolean> {
+  try {
+    const res = await fetch(`/api/campaigns/${id}`, {
+      method: "DELETE",
+    });
+
+    return res.ok;
+  } catch {
+    return false;
   }
 }
