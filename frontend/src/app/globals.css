@@ -59,3 +59,27 @@ body {
 
   animation: shine 3s linear infinite;
 }
+
+.comment-input-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #9ca3af transparent;
+}
+
+.comment-input-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.comment-input-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.comment-input-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #9ca3af;
+  border-radius: 9999px;
+}
+
+.comment-input-scrollbar::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}

@@ -10,6 +10,7 @@ import { getDaysLeft } from "@/utils/campaignDate";
 import { formatDate } from "@/utils/campaignFormat";
 import { ethers } from "ethers";
 import { DONATION_CONTRACT_ADDRESS, DONATION_CONTRACT_ABI } from "@/const/donationContract";
+import {Comment} from "@/components/Comment/Comment";
 
 type DetailState = {
   loading: boolean;
@@ -305,7 +306,8 @@ export default function CampaignDetailPage() {
                 <h1 className="text-3xl font-bold text-slate-900">{state.campaign.title}</h1>
                 <p className="whitespace-pre-line text-slate-700">{state.campaign.description}</p>
               </div>
-            </div>
+            </div>       
+              <Comment campaignId={state.campaign._id} />
           </div>
 
           <div className="lg:col-span-1">
