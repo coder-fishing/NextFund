@@ -152,3 +152,28 @@ export async function deleteMyCampaign(id: string): Promise<boolean> {
     return false;
   }
 }
+
+export async function exportCampaignStatementCsv(id: string): Promise<void> {
+  const res = await fetch(`/api/campaigns/${id}/statement?format=csv`, {
+    method: "GET",
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error("Khong the xuat sao ke CSV");
+  }
+
+  const blob = await res.blob();
+  const disposition = res.headers.get("content-disposition") ?? "";
+  const match = disposition.match(/filename=\"?([^\";]+)\"?/i);
+  const filename = match?.[1] ?? `campaign-${id}-statement.csv`;
+
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  URL.revokeObjectURL(url);
+}

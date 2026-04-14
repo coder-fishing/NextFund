@@ -8,6 +8,7 @@ import { FundraiserCard } from "@/components/Fundraisers/FundraiserCard";
 import {
     Campaign,
     deleteMyCampaign,
+    exportCampaignStatementCsv,
     getMyCampaigns,
     MyCampaignFilter,
 } from "@/services/campaignService";
@@ -30,6 +31,7 @@ export default function MyCampaingsPage() {
     const [error, setError] = useState<string | null>(null);
     const [filter, setFilter] = useState<MyCampaignFilter>("all");
     const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [exportingId, setExportingId] = useState<string | null>(null);
 
     const loadCampaigns = async (nextFilter: MyCampaignFilter) => {
         setLoading(true);
@@ -90,6 +92,19 @@ export default function MyCampaingsPage() {
         }
 
         await loadCampaigns(filter);
+    };
+
+    const handleExportCsv = async (campaignId: string) => {
+        setError(null);
+        setExportingId(campaignId);
+
+        try {
+            await exportCampaignStatementCsv(campaignId);
+        } catch {
+            setError("Khong the xuat sao ke CSV. Vui long thu lai.");
+        } finally {
+            setExportingId(null);
+        }
     };
 
     return (
@@ -165,14 +180,25 @@ export default function MyCampaingsPage() {
                                     </span>
 
                                     {!isDeleted && (
-                                        <button
-                                            type="button"
-                                            onClick={() => handleDelete(campaign._id)}
-                                            disabled={deletingId === campaign._id}
-                                            className="rounded-md border border-rose-200 px-3 py-1 text-xs font-medium text-rose-600 transition-colors hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60"
-                                        >
-                                            {deletingId === campaign._id ? "Deleting..." : "Delete"}
-                                        </button>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => handleExportCsv(campaign._id)}
+                                                disabled={exportingId === campaign._id}
+                                                className="rounded-md border border-sky-200 px-3 py-1 text-xs font-medium text-sky-700 transition-colors hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-60"
+                                            >
+                                                {exportingId === campaign._id ? "Exporting..." : "CSV"}
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDelete(campaign._id)}
+                                                disabled={deletingId === campaign._id}
+                                                className="rounded-md border border-rose-200 px-3 py-1 text-xs font-medium text-rose-600 transition-colors hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60"
+                                            >
+                                                {deletingId === campaign._id ? "Deleting..." : "Delete"}
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
 
