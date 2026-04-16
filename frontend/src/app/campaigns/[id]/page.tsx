@@ -11,6 +11,7 @@ import { formatDate } from "@/utils/campaignFormat";
 import { ethers } from "ethers";
 import { DONATION_CONTRACT_ADDRESS, DONATION_CONTRACT_ABI } from "@/const/donationContract";
 import {Comment} from "@/components/Comment/Comment";
+import { DonateQrCard } from "@/components/Donate/DonateQrCard";
 
 type DetailState = {
   loading: boolean;
@@ -31,6 +32,9 @@ const toEthAmount = (amountWei?: string, fallback = 0): number => {
 };
 
 export default function CampaignDetailPage() {
+  const SEPOLIA_CHAIN_ID_HEX = "0xaa36a7";
+  const SEPOLIA_CHAIN_ID_DEC = 11155111;
+
   const params = useParams<{ id: string }>();
   const id = Array.isArray(params?.id) ? params.id[0] : params?.id;
 
@@ -208,12 +212,11 @@ export default function CampaignDetailPage() {
       await ethereum.request({ method: "eth_requestAccounts" });
 
       const chainIdHex = (await ethereum.request({ method: "eth_chainId" })) as string;
-      const sepoliaChainId = "0xaa36a7";
 
-      if (chainIdHex !== sepoliaChainId) {
+      if (chainIdHex !== SEPOLIA_CHAIN_ID_HEX) {
         await ethereum.request({
           method: "wallet_switchEthereumChain",
-          params: [{ chainId: sepoliaChainId }],
+          params: [{ chainId: SEPOLIA_CHAIN_ID_HEX }],
         });
       }
 
@@ -401,6 +404,15 @@ export default function CampaignDetailPage() {
                   Balance: {walletBalanceEth ? `${walletBalanceEth} ETH` : "--"}
                 </p>
               </div>
+
+              <DonateQrCard
+                campaignId={state.campaign._id}
+                receiverWalletAddress={state.campaign.receiveWalletAddress}
+                donateEth={donateEth}
+                donationContractAddress={DONATION_CONTRACT_ADDRESS}
+                chainIdDec={SEPOLIA_CHAIN_ID_DEC}
+                onError={(message) => setDonateError(message)}
+              />
 
               {donateError && <p className="text-sm text-red-600">{donateError}</p>}
               {donateSuccess && <p className="break-all text-sm text-emerald-700">{donateSuccess}</p>}
