@@ -118,6 +118,17 @@ export default function CampaignDetailPage() {
     return Math.min(100, Math.max(0, (raisedEth / goalEth) * 100));
   }, [goalEth, raisedEth]);
 
+  const reloadCampaign = async (campaignId: string): Promise<void> => {
+    const freshCampaign = await getCampaignById(campaignId);
+    if (!freshCampaign) return;
+
+    setState((prev) => ({
+      ...prev,
+      error: null,
+      campaign: freshCampaign,
+    }));
+  };
+
   const fetchWalletBalance = async (
     provider: ethers.BrowserProvider,
     address: string
@@ -182,6 +193,8 @@ export default function CampaignDetailPage() {
       return;
     }
 
+    const donateWei = ethers.parseEther(donateEth);
+
     const ethereum = (window as Window & { ethereum?: EthereumProvider }).ethereum;
 
     if (!ethereum) {
@@ -224,7 +237,7 @@ export default function CampaignDetailPage() {
         state.campaign.receiveWalletAddress,
         campaignIdOnChain,
         {
-          value: ethers.parseEther(donateEth),
+          value: donateWei,
         }
       );
 
@@ -248,6 +261,28 @@ export default function CampaignDetailPage() {
       if (!response.ok) {
         throw new Error(data.message ?? "Saved on-chain, but failed to save donation in DB.");
       }
+
+      setState((prev) => {
+        if (!prev.campaign) return prev;
+
+        const currentAmountWei =
+          prev.campaign.currentAmountWei && /^\d+$/.test(prev.campaign.currentAmountWei)
+            ? BigInt(prev.campaign.currentAmountWei)
+            : ethers.parseEther(String(prev.campaign.currentAmount ?? 0));
+
+        const nextAmountWei = currentAmountWei + donateWei;
+
+        return {
+          ...prev,
+          campaign: {
+            ...prev.campaign,
+            currentAmountWei: nextAmountWei.toString(),
+            currentAmount: Number(ethers.formatEther(nextAmountWei)),
+          },
+        };
+      });
+
+      await reloadCampaign(state.campaign._id);
 
       setDonateSuccess(`Donate success. Tx hash: ${txHash}`);
       await fetchWalletBalance(provider, donorAddress);
