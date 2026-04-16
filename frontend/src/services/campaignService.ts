@@ -101,7 +101,9 @@ export async function getApprovedCampaigns(category?: CampaignCategory | "all"):
 
 export async function getCampaignById(id: string): Promise<Campaign | null> {
   try {
-    const res = await fetch(`${backendApiUrl}/campaigns/${id}`);
+    const res = await fetch(`${backendApiUrl}/campaigns/${id}`, {
+      cache: "no-store",
+    });
 
     if (!res.ok) {
       return null;
