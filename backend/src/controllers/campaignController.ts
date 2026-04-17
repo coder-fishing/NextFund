@@ -248,6 +248,93 @@ export const updateCampaignStatus = async (req: AuthRequest, res: Response): Pro
     }
 };
 
+export const updateCampaign = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params
+    const userEmail = req.user?.email
+
+    if (!userEmail) {
+      res.status(401).json({ message: "Invalid token payload" })
+      return
+    }
+
+    const campaign = await Campaign.findOne({ _id: id, creator: userEmail, deletedAt: null })
+
+    if (!campaign) {
+      res.status(404).json({ message: "Campaign not found" })
+      return
+    }
+
+    const {
+      title,
+      description,
+      category,
+      goalAmount,
+      endDate,
+      image,
+      receiveWalletAddress,
+    } = req.body as CreateCampaignBody
+
+    if (!title || !description || !goalAmount || !endDate || !receiveWalletAddress) {
+      res.status(400).json({ message: "Missing required fields" })
+      return
+    }
+
+    if (Number(goalAmount) <= 0) {
+      res.status(400).json({ message: "goalAmount must be greater than 0" })
+      return
+    }
+
+    const parsedEndDate = new Date(endDate)
+    if (Number.isNaN(parsedEndDate.getTime())) {
+      res.status(400).json({ message: "Invalid endDate" })
+      return
+    }
+
+    const normalizedReceiveWalletAddress = receiveWalletAddress.trim().toLowerCase()
+    const user = await User.findOne({ email: userEmail }).select("_id")
+
+    if (!user) {
+      res.status(404).json({ message: "User not found" })
+      return
+    }
+
+    const userWallet = await Wallet.findOne({
+      userId: user._id,
+      address: normalizedReceiveWalletAddress,
+    }).select("_id")
+
+    if (!userWallet) {
+      res.status(403).json({ message: "Selected wallet does not belong to this user" })
+      return
+    }
+
+    const normalizedCategory = (category ?? "general").trim().toLowerCase()
+    if (!allowedCategories.has(normalizedCategory)) {
+      res.status(400).json({ message: "Invalid category" })
+      return
+    }
+
+    campaign.title = title.trim()
+    campaign.description = description.trim()
+    campaign.category = normalizedCategory
+    campaign.goalAmount = Number(goalAmount)
+    campaign.endDate = parsedEndDate
+    campaign.image = Array.isArray(image) ? image : []
+    campaign.receiveWalletAddress = normalizedReceiveWalletAddress
+
+    await campaign.save()
+
+    res.status(200).json({
+      message: "Campaign updated successfully",
+      campaign,
+    })
+  } catch (error) {
+    console.error("Error updating campaign:", error)
+    res.status(500).json({ message: "Error updating campaign", error })
+  }
+}
+
 // Delete
 
 export const deleteCampaign = async (req: AuthRequest, res: Response): Promise<void> => {
