@@ -36,3 +36,35 @@ export async function DELETE(_request: Request, context: RouteContext) {
   const data = await response.json();
   return NextResponse.json(data, { status: response.status });
 }
+
+export async function PUT(request: Request, context: RouteContext) {
+  const session = await auth();
+
+  if (!session?.user?.email) {
+    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  }
+
+  const internalSecret = process.env.INTERNAL_API_SECRET;
+  if (!internalSecret) {
+    return NextResponse.json(
+      { message: 'INTERNAL_API_SECRET is not configured on frontend server' },
+      { status: 500 }
+    );
+  }
+
+  const { id } = await context.params;
+  const payload = await request.json();
+
+  const response = await fetch(`${backendApiUrl}/campaigns/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-internal-secret': internalSecret,
+      'x-user-email': session.user.email,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await response.json();
+  return NextResponse.json(data, { status: response.status });
+}

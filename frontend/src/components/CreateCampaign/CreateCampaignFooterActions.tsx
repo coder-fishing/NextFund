@@ -6,6 +6,7 @@ type Props = {
   reviewStep: number;
   submitting: boolean;
   uploadingImages: boolean;
+  submitLabel?: string;
   onBack: () => void;
   onContinue: () => void;
   onLaunchClick: () => void;
@@ -16,6 +17,7 @@ export function CreateCampaignFooterActions({
   reviewStep,
   submitting,
   uploadingImages,
+  submitLabel = "Launch fundraiser",
   onBack,
   onContinue,
   onLaunchClick,
@@ -42,7 +44,7 @@ export function CreateCampaignFooterActions({
           loading={submitting}
           className="h-12 min-w-52 rounded-full"
         >
-          {uploadingImages ? "Uploading images..." : "Launch fundraiser"}
+          {uploadingImages ? "Uploading images..." : submitLabel}
         </PrimaryButton>
       )}
     </div>
