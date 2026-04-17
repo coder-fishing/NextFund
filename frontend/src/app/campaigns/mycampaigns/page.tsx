@@ -183,6 +183,14 @@ export default function MyCampaingsPage() {
                                         <div className="flex items-center gap-2">
                                             <button
                                                 type="button"
+                                                onClick={() => router.push(`/campaigns/mycampaigns/${campaign._id}/edit`)}
+                                                className="rounded-md border border-emerald-200 px-3 py-1 text-xs font-medium text-emerald-700 transition-colors hover:bg-emerald-50"
+                                            >
+                                                Edit
+                                            </button>
+
+                                            <button
+                                                type="button"
                                                 onClick={() => handleExportCsv(campaign._id)}
                                                 disabled={exportingId === campaign._id}
                                                 className="rounded-md border border-sky-200 px-3 py-1 text-xs font-medium text-sky-700 transition-colors hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-60"
