@@ -1,18 +1,32 @@
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
 
-export function useCreateCampaignMedia() {
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+type Args = {
+  initialImageUrls?: string[];
+  replaceExistingOnUpload?: boolean;
+};
 
-  const selectedImagePreviews = useMemo(
+export function useCreateCampaignMedia({
+  initialImageUrls = [],
+  replaceExistingOnUpload = false,
+}: Args = {}) {
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [existingImageUrls, setExistingImageUrls] = useState<string[]>(initialImageUrls);
+
+  const selectedFilePreviews = useMemo(
     () => selectedFiles.map((file) => URL.createObjectURL(file)),
     [selectedFiles]
   );
 
+  const selectedImagePreviews = useMemo(
+    () => [...existingImageUrls, ...selectedFilePreviews],
+    [existingImageUrls, selectedFilePreviews]
+  );
+
   useEffect(() => {
     return () => {
-      selectedImagePreviews.forEach((url) => URL.revokeObjectURL(url));
+      selectedFilePreviews.forEach((url) => URL.revokeObjectURL(url));
     };
-  }, [selectedImagePreviews]);
+  }, [selectedFilePreviews]);
 
   const handleFilesChange = (event: ChangeEvent<HTMLInputElement>) => {
     const fileList = event.target.files;
@@ -21,6 +35,13 @@ export function useCreateCampaignMedia() {
     }
 
     const incomingFiles = Array.from(fileList);
+
+    if (replaceExistingOnUpload && incomingFiles.length > 0) {
+      setExistingImageUrls([]);
+      setSelectedFiles(incomingFiles);
+      event.target.value = "";
+      return;
+    }
 
     setSelectedFiles((prev) => {
       const fileKey = (file: File) => `${file.name}-${file.size}-${file.lastModified}`;
@@ -34,11 +55,14 @@ export function useCreateCampaignMedia() {
   };
 
   const clearFiles = () => {
+    setExistingImageUrls([]);
     setSelectedFiles([]);
   };
 
   return {
     selectedFiles,
+    existingImageUrls,
+    setExistingImageUrls,
     selectedImagePreviews,
     handleFilesChange,
     clearFiles,
