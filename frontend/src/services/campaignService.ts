@@ -26,6 +26,16 @@ export type Campaign = {
 
 export type MyCampaignFilter = "all" | "active" | "expired" | "deleted";
 
+export type UpdateCampaignPayload = {
+  title: string;
+  description: string;
+  category: string;
+  goalAmount: number;
+  endDate: string;
+  image: string[];
+  receiveWalletAddress: string;
+};
+
 // URL backend chuyên cho campaign; KHÔNG dùng NEXT_PUBLIC_API_URL để tránh trỏ nhầm sang frontend
 const backendApiUrl =
   process.env.BACKEND_API_URL ?? "http://localhost:5000/api";
@@ -147,6 +157,22 @@ export async function deleteMyCampaign(id: string): Promise<boolean> {
   try {
     const res = await fetch(`/api/campaigns/${id}`, {
       method: "DELETE",
+    });
+
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function updateMyCampaign(id: string, payload: UpdateCampaignPayload): Promise<boolean> {
+  try {
+    const res = await fetch(`/api/campaigns/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
     });
 
     return res.ok;
