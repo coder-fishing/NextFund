@@ -93,6 +93,11 @@ const tick = async () => {
     if (fromBlock > safeBlock) return;
 
     const eventFragment = donationInterface.getEvent("DonationSent");
+    if (!eventFragment) {
+      console.error("[donation-indexer] DonationSent event not found in interface");
+      return;
+    }
+
     const topic0 = eventFragment.topicHash;
 
     const touchedCampaignIds = new Set<string>();
@@ -132,10 +137,14 @@ const tick = async () => {
       windowsProcessed += 1;
 
       for (const log of logs) {
-        let parsed: ethers.LogDescription;
+        let parsed: ethers.LogDescription | null = null;
         try {
           parsed = donationInterface.parseLog(log);
         } catch {
+          continue;
+        }
+
+        if (!parsed) {
           continue;
         }
 
