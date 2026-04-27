@@ -31,6 +31,32 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+This project includes a small CLI for deploying the current frontend to Vercel.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Production deploy:
+
+```bash
+npm run deploy:vercel
+```
+
+Preview deploy:
+
+```bash
+npm run deploy:vercel:preview
+```
+
+Optional flags:
+
+```bash
+npm run deploy:vercel -- --token <VERCEL_TOKEN> --scope <team-slug>
+```
+
+By default, the deploy CLI now backs up and restores local `.env.local` so Vercel CLI does not overwrite your local env.
+
+Disable that behavior if needed:
+
+```bash
+npm run deploy:vercel -- --no-preserve-env
+```
+
+Tip: You can also set `VERCEL_TOKEN` in your environment instead of passing `--token`.
