@@ -1,4 +1,4 @@
-import { FormEvent } from "react";
+import { FormEvent, KeyboardEvent } from "react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 
@@ -41,7 +41,7 @@ export const CommentInput = ({ value, onChange, onSubmit, isSubmitting }: Props)
   };
 
   return (
-    <form className="border-t border-slate-200 p-3">
+    <form onSubmit={handleSubmit} className="border-t border-slate-200 p-3">
       <div className="flex items-end gap-2 rounded-2xl bg-slate-100 p-2">
         <Image
           src={session?.user?.image || "/avatar.png"}

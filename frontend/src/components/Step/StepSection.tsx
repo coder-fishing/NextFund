@@ -72,7 +72,9 @@ const StepSection: React.FC = () => {
                         {steps.map((item, index) => (
                             <div
                                 key={item.step}
-                                ref={(el) => (stepRefs.current[index] = el)}
+                                ref={(el) => {
+                                    stepRefs.current[index] = el;
+                                }}
                             >
                                 <StepGuide
                                     step={item.step}

@@ -152,7 +152,6 @@ export default function CreateCampaignPage() {
             <div className="mx-auto w-full max-w-6xl pb-6 pt-3 sm:pt-6">
             <CreateCampaignStepContent
               currentStep={currentStep}
-              onEditStep={(step) => setCurrentStep(step)}
               beneficiary={beneficiary}
               setBeneficiary={setBeneficiary}
               country={country}
