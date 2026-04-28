@@ -7,6 +7,8 @@ import { PrimaryButton } from "@/components/Button/PrimaryButton";
 import { SecondaryButton } from "@/components/Button/SecondaryButton";
 import { FundraiserCard } from "@/components/Fundraisers/FundraiserCard";
 import { Campaign, getApprovedCampaigns } from "@/services/campaignService";
+import { SearchCampaigns } from "@/components/SearchCampaigns/SearchCampaigns";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { categoryOptions, CategoryFilter, heroCopyByCategory } from "@/const/campaigns";
 import { getDaysLeft } from "@/utils/campaignDate";
 
@@ -16,6 +18,8 @@ export default function CampaignsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [category, setCategory] = useState<CategoryFilter>("all");
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search, 300);
 
   useEffect(() => {
     let cancelled = false;
@@ -25,7 +29,7 @@ export default function CampaignsPage() {
       setError(null);
 
       try {
-        const data = await getApprovedCampaigns(category);
+        const data = await getApprovedCampaigns(category, debouncedSearch);
         if (!cancelled) {
           setCampaigns(data);
         }
@@ -45,7 +49,7 @@ export default function CampaignsPage() {
     return () => {
       cancelled = true;
     };
-  }, [category]);
+  }, [category, debouncedSearch]);
 
   const heroCopy = heroCopyByCategory[category];
 
@@ -73,15 +77,17 @@ export default function CampaignsPage() {
           <img
             src="https://images.unsplash.com/photo-1516589091380-5d8e87df6999?auto=format&fit=crop&w=1000&q=80"
             alt="People supporting each other"
-            className="h-full min-h-[260px] w-full object-cover"
+            className="h-full min-h-65 w-full object-cover"
           />
         </div>
       </div>
 
       <div className="mb-6">
         <h2 className="mb-2 text-2xl font-bold text-slate-900">Browse fundraisers</h2>
-        <p className="text-slate-600">Filter by category.</p>
+        <p className="text-slate-600">Filter by category or search by title and description.</p>
       </div>
+
+      <SearchCampaigns search={search} onSearchChange={setSearch} />
 
       <div className="mb-4 flex flex-wrap gap-2">
         {categoryOptions.map((item) =>
@@ -121,7 +127,7 @@ export default function CampaignsPage() {
 
       {!loading && !error && campaigns.length === 0 && (
         <div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500">
-          No approved campaigns found for this category.
+          No approved campaigns match your current filters.
         </div>
       )}
 

@@ -82,9 +82,22 @@ export async function getLatestCampaigns(limit = 5): Promise<Campaign[]> {
   }
 }
 
-export async function getApprovedCampaigns(category?: CampaignCategory | "all"): Promise<Campaign[]> {
+export async function getApprovedCampaigns(
+  category?: CampaignCategory | "all",
+  search?: string
+): Promise<Campaign[]> {
   try {
-    const categoryQuery = category && category !== "all" ? `?category=${category}` : "";
+    const params = new URLSearchParams();
+
+    if (category && category !== "all") {
+      params.set("category", category);
+    }
+
+    if (search && search.trim() !== "") {
+      params.set("search", search.trim());
+    }
+
+    const categoryQuery = params.toString() ? `?${params.toString()}` : "";
     const res = await fetch(`${backendApiUrl}/campaigns/approved${categoryQuery}`);
 
     if (!res.ok) {
@@ -108,6 +121,8 @@ export async function getApprovedCampaigns(category?: CampaignCategory | "all"):
     return [];
   }
 }
+
+
 
 export async function getCampaignById(id: string): Promise<Campaign | null> {
   try {
