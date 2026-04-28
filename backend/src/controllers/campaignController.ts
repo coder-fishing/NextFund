@@ -24,6 +24,8 @@ const allowedCategories = new Set([
   "general",
 ])
 
+const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+
 // Create
 
 export const createCampaign = async (
@@ -171,7 +173,9 @@ export const getCampaignByUserEmail = async (req: AuthRequest, res: Response): P
 export const getApprovedCampaigns = async (_req: AuthRequest | null, res: Response): Promise<void> => {
     try {
     const categoryQuery = _req?.query?.category
+    const searchQuery = _req?.query?.search
     let categoryFilter: string | undefined
+    let searchFilter: string | undefined
 
     if (typeof categoryQuery === "string" && categoryQuery.trim() !== "") {
       const normalizedCategory = categoryQuery.trim().toLowerCase()
@@ -182,11 +186,24 @@ export const getApprovedCampaigns = async (_req: AuthRequest | null, res: Respon
       categoryFilter = normalizedCategory;
     }
 
-    const campaigns = await Campaign.find({
+    if (typeof searchQuery === "string" && searchQuery.trim() !== "") {
+      searchFilter = escapeRegExp(searchQuery.trim())
+    }
+
+    const query: Record<string, unknown> = {
       status: "approved",
       deletedAt: null,
       ...(categoryFilter ? { category: categoryFilter } : {}),
-    });
+    }
+
+    if (searchFilter) {
+      query.$or = [
+        { title: { $regex: searchFilter, $options: "i" } },
+        { description: { $regex: searchFilter, $options: "i" } },
+      ]
+    }
+
+    const campaigns = await Campaign.find(query);
         res.status(200).json({ campaigns });
     } catch (error) {
         console.error("Error fetching approved campaigns:", error);
