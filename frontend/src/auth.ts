@@ -16,6 +16,9 @@ const googleClientSecret = shouldSwapGoogleCredentials ? rawGoogleId : rawGoogle
 const facebookClientId = process.env.FACEBOOK_CLIENT_ID ?? process.env.FACEBOOK_ID ?? "";
 const facebookClientSecret = process.env.FACEBOOK_CLIENT_SECRET ?? process.env.FACEBOOK_SECRET ?? "";
 
+const backendApiUrl =
+  process.env.BACKEND_API_URL ?? "http://localhost:5000/api";
+
 export const { auth, handlers, signIn, signOut } = NextAuth({
   secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
   trustHost: true,
@@ -42,16 +45,26 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         token.providerId = account.providerAccountId;
       }
 
-      const adminEnv = process.env.ADMIN_EMAILS ?? "";
-      const adminEmails = adminEnv
-        .split(",")
-        .map((email) => email.trim().toLowerCase())
-        .filter(Boolean);
+      // On initial sign-in, fetch role from database
+      if (account && token.email) {
+        try {
+          const res = await fetch(
+            `${backendApiUrl}/users?email=${encodeURIComponent(String(token.email))}`,
+            { cache: "no-store" }
+          );
+          if (res.ok) {
+            const user = await res.json();
+            token.role = user?.role === "admin" ? "admin" : "user";
+          } else {
+            token.role = "user";
+          }
+        } catch {
+          token.role = "user";
+        }
+      }
 
-      if (token.email && adminEmails.length > 0) {
-        const isAdmin = adminEmails.includes(String(token.email).toLowerCase());
-        token.role = isAdmin ? "admin" : "user";
-      } else if (!token.role) {
+      // Fallback: if role is still not set
+      if (!token.role) {
         token.role = "user";
       }
 
