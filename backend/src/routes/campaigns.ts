@@ -3,6 +3,7 @@ import {
 	createCampaign,
 	deleteCampaign,
 	updateCampaign,
+	updateCampaignStatus,
 	getApprovedCampaigns,
 	getCampaignById,
 	getCampaignByUserEmail,
@@ -17,6 +18,7 @@ router.post("/", verifyInternalRequest, createCampaign);
 router.get("/me", verifyInternalRequest, getCampaignByUserEmail);
 router.get("/approved", getApprovedCampaigns);
 router.get("/export/:campaignId", verifyInternalRequest, exportCampaignsStatement);
+router.patch("/:id/status", verifyInternalRequest, updateCampaignStatus);
 router.put("/:id", verifyInternalRequest, updateCampaign);
 router.delete("/:id", verifyInternalRequest, deleteCampaign);
 router.get("/:id", getCampaignById);

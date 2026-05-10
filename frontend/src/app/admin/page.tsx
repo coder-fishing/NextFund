@@ -2,46 +2,357 @@
 
 import { useSession } from 'next-auth/react';
 import { redirect } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
-export default function AdminPage() {
-  const { data: session, status } = useSession();
+import {
+  getAdminStats,
+  getAdminCampaigns,
+  getAdminUsers,
+  updateCampaignStatus as apiUpdateStatus,
+  type AdminStats,
+  type AdminCampaign,
+  type AdminUser,
+  type PaginationData,
+} from '@/services/adminService';
 
-  if (status === 'loading') {
-    return (
-      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
-        <div className="text-lg text-gray-600">Đang tải...</div>
-      </div>
+// Components
+import { StatCard } from '@/components/Admin/StatCard';
+import { CampaignsTable } from '@/components/Admin/CampaignsTable';
+import { UsersTable } from '@/components/Admin/UsersTable';
+import { Pagination } from '@/components/Admin/Pagination';
+import { AdminCharts } from '@/components/Admin/AdminCharts';
+
+type Tab = 'campaigns' | 'users';
+type StatusFilter = 'all' | 'pending' | 'approved' | 'rejected';
+
+export default function AdminDashboard() {
+  const { data: session, status: authStatus } = useSession();
+
+  // Derived state
+  const isAdmin = useMemo(
+    () => session?.user?.role === 'admin',
+    [session?.user?.role]
+  );
+
+  // UI State
+  const [activeTab, setActiveTab] = useState<Tab>('campaigns');
+
+  // Stats State
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  // Campaigns State
+  const [campaigns, setCampaigns] = useState<AdminCampaign[]>([]);
+  const [campaignStatus, setCampaignStatus] =
+    useState<StatusFilter>('all');
+
+  const [campaignPagination, setCampaignPagination] =
+    useState<PaginationData | null>(null);
+
+  const [campaignPage, setCampaignPage] = useState(1);
+  const [loadingCampaigns, setLoadingCampaigns] = useState(true);
+
+  // Users State
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [userPagination, setUserPagination] =
+    useState<PaginationData | null>(null);
+
+  const [userPage, setUserPage] = useState(1);
+  const [loadingUsers, setLoadingUsers] = useState(true);
+
+  // Auth Guard
+  useEffect(() => {
+    if (authStatus === 'unauthenticated') {
+      redirect('/login');
+    }
+  }, [authStatus]);
+
+  // Fetch Stats
+  const fetchStats = useCallback(async () => {
+    try {
+      setLoadingStats(true);
+
+      const data = await getAdminStats();
+
+      if (data) {
+        setStats(data);
+      }
+    } catch (error) {
+      console.error('Fetch stats failed:', error);
+    } finally {
+      setLoadingStats(false);
+    }
+  }, []);
+
+  // Fetch Campaigns
+  const fetchCampaigns = useCallback(
+    async (status: string, page: number) => {
+      try {
+        setLoadingCampaigns(true);
+
+        const res = await getAdminCampaigns(status, page, 10);
+
+        if (res) {
+          setCampaigns(res.campaigns);
+          setCampaignPagination(res.pagination);
+        }
+      } catch (error) {
+        console.error('Fetch campaigns failed:', error);
+      } finally {
+        setLoadingCampaigns(false);
+      }
+    },
+    []
+  );
+
+  // Fetch Users
+  const fetchUsers = useCallback(async (page: number) => {
+    try {
+      setLoadingUsers(true);
+
+      const res = await getAdminUsers(page, 10);
+
+      if (res) {
+        setUsers(res.users);
+        setUserPagination(res.pagination);
+      }
+    } catch (error) {
+      console.error('Fetch users failed:', error);
+    } finally {
+      setLoadingUsers(false);
+    }
+  }, []);
+
+  // Fetch Stats
+  // Only when authenticated admin
+  useEffect(() => {
+    if (isAdmin) {
+      fetchStats();
+    }
+  }, [isAdmin, fetchStats]);
+
+  // Fetch Campaigns
+  useEffect(() => {
+    if (isAdmin && activeTab === 'campaigns') {
+      fetchCampaigns(campaignStatus, campaignPage);
+    }
+  }, [
+    isAdmin,
+    activeTab,
+    campaignStatus,
+    campaignPage,
+    fetchCampaigns,
+  ]);
+
+  // Fetch Users
+  useEffect(() => {
+    if (isAdmin && activeTab === 'users') {
+      fetchUsers(userPage);
+    }
+  }, [
+    isAdmin,
+    activeTab,
+    userPage,
+    fetchUsers,
+  ]);
+
+  // Handle approve/reject
+  const handleStatusUpdate = async (
+    id: string,
+    status: 'approved' | 'rejected'
+  ) => {
+    const confirmed = confirm(
+      `Bạn có chắc chắn muốn ${
+        status === 'approved'
+          ? 'DUYỆT'
+          : 'TỪ CHỐI'
+      } chiến dịch này?`
     );
+
+    if (!confirmed) return;
+
+    try {
+      const success = await apiUpdateStatus(id, status);
+
+      if (!success) {
+        alert('Cập nhật trạng thái thất bại.');
+        return;
+      }
+
+      // Refresh stats
+      fetchStats();
+
+      // Refresh current campaigns page
+      fetchCampaigns(campaignStatus, campaignPage);
+    } catch (error) {
+      console.error(error);
+      alert('Có lỗi xảy ra.');
+    }
+  };
+
+  // Guards
+  if (authStatus === 'loading') {
+    return null;
   }
 
-  if (!session || session.user?.role !== 'admin') {
-    redirect('/');
+  if (!isAdmin) {
+    return null;
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-10">
-      <h1 className="text-3xl font-bold text-gray-800 mb-4">Trang quản trị</h1>
-      <p className="text-gray-600 mb-6">
-        Đây là khu vực dành cho admin để duyệt bài, quản lý chiến dịch và người dùng.
-      </p>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-lg shadow-sm p-5 border border-slate-100">
-          <h2 className="font-semibold text-gray-800 mb-2">Chiến dịch chờ duyệt</h2>
-          <p className="text-sm text-gray-500">
-            Sau này bạn có thể hiển thị danh sách campaign ở trạng thái pending tại đây.
-          </p>
+    <div className="min-h-screen bg-gray-50 pb-20">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 pt-10 pb-6 mb-8 shadow-sm">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+                Admin{' '}
+                <span className="text-emerald-600">
+                  Dashboard
+                </span>
+              </h1>
+
+              <p className="text-gray-500 mt-1 font-medium">
+                Quản lý hệ thống, phê duyệt chiến dịch và
+                người dùng.
+              </p>
+            </div>
+          </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm p-5 border border-slate-100">
-          <h2 className="font-semibold text-gray-800 mb-2">Báo cáo đóng góp</h2>
-          <p className="text-sm text-gray-500">
-            Khu vực thống kê số tiền quyên góp, số lượt ủng hộ, v.v.
-          </p>
+      </div>
+
+      <div className="container mx-auto px-4">
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+          <StatCard
+            label="Tổng Campaign"
+            value={
+              loadingStats && !stats
+                ? '...'
+                : stats?.totalCampaigns ?? 0
+            }
+          />
+
+          <StatCard
+            label="Hoàn thành 100%"
+            value={
+              loadingStats && !stats
+                ? '...'
+                : stats?.completedGoalCount ?? 0
+            }
+          />
+
+          <StatCard
+            label="Tổng ETH đạt được"
+            value={
+              loadingStats && !stats
+                ? '...'
+                : `${stats?.totalEth ?? 0} ETH`
+            }
+          />
+
+          <StatCard
+            label="% Đạt được TB"
+            value={
+              loadingStats && !stats
+                ? '...'
+                : `${stats?.avgGoalPercentage ?? 0}%`
+            }
+          />
         </div>
-        <div className="bg-white rounded-lg shadow-sm p-5 border border-slate-100">
-          <h2 className="font-semibold text-gray-800 mb-2">Quản lý người dùng</h2>
-          <p className="text-sm text-gray-500">
-            Dự kiến trang quản lý quyền hạn, khóa / mở tài khoản, ...
-          </p>
+
+        {/* Charts Section */}
+        <AdminCharts stats={stats} />
+
+        {/* Main Card */}
+        <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+          {/* Tabs */}
+          <div className="flex border-b border-gray-100">
+            <button
+              onClick={() => setActiveTab('campaigns')}
+              className={`flex-1 py-5 text-sm font-bold transition-all ${
+                activeTab === 'campaigns'
+                  ? 'text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50/30'
+                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              Quản lý Chiến dịch
+            </button>
+
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`flex-1 py-5 text-sm font-bold transition-all ${
+                activeTab === 'users'
+                  ? 'text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50/30'
+                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              Danh sách Người dùng
+            </button>
+          </div>
+
+          <div className="p-6">
+            {activeTab === 'campaigns' ? (
+              <>
+                {/* Filter */}
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {(
+                    [
+                      'all',
+                      'pending',
+                      'approved',
+                      'rejected',
+                    ] as StatusFilter[]
+                  ).map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => {
+                        setCampaignStatus(status);
+                        setCampaignPage(1);
+                      }}
+                      className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all border ${
+                        campaignStatus === status
+                          ? 'bg-emerald-600 text-white border-emerald-600'
+                          : 'bg-white text-gray-500 border-gray-200'
+                      }`}
+                    >
+                      {status.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+
+                <CampaignsTable
+                  campaigns={campaigns}
+                  onStatusUpdate={handleStatusUpdate}
+                  isLoading={loadingCampaigns}
+                />
+
+                <Pagination
+                  currentPage={campaignPage}
+                  totalPages={
+                    campaignPagination?.totalPages ?? 1
+                  }
+                  onPageChange={setCampaignPage}
+                />
+              </>
+            ) : (
+              <>
+                <UsersTable
+                  users={users}
+                  isLoading={loadingUsers}
+                />
+
+                <Pagination
+                  currentPage={userPage}
+                  totalPages={
+                    userPagination?.totalPages ?? 1
+                  }
+                  onPageChange={setUserPage}
+                />
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>

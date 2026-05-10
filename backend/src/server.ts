@@ -8,6 +8,7 @@ import campaignsRouter from "./routes/campaigns.js";
 import commentRouter from "./routes/comments.js";
 import likesRouter from "./routes/likes.js";
 import donationRouter from "./routes/donation.js";
+import adminRouter from "./routes/admin.js";
 import { startDonationIndexer } from "./workers/donationIndexer.js";
 
 dotenv.config({ path: ["./.env", "./src/.env"], override: true });
@@ -30,6 +31,7 @@ const startServer = async (): Promise<void> => {
   app.use("/api/comments", commentRouter);
   app.use("/api/likes", likesRouter);
   app.use("/api/donations", donationRouter);
+  app.use("/api/admin", adminRouter);
 
   startDonationIndexer();
 
