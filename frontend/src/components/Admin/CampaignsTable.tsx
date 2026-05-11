@@ -26,6 +26,7 @@ const statusColors: Record<string, string> = {
   active: 'bg-blue-100 text-blue-700 border-blue-200',
   completed: 'bg-indigo-100 text-indigo-700 border-indigo-200',
   cancelled: 'bg-gray-100 text-gray-700 border-gray-200',
+  manual: 'bg-violet-100 text-violet-700 border-violet-200',
 };
 
 export function CampaignsTable({
@@ -57,7 +58,7 @@ export function CampaignsTable({
         <thead>
           <tr className="border-b border-gray-100 bg-gray-50/50">
             <th className="py-4 px-4 text-sm font-semibold text-gray-600">Thông tin</th>
-            <th className="py-4 px-4 text-sm font-semibold text-gray-600">Trạng thái</th>
+            <th className="py-4 px-4 text-sm font-semibold text-gray-600">Phân tích AI</th>
             <th className="py-4 px-4 text-sm font-semibold text-gray-600">Tiến độ</th>
             <th className="py-4 px-4 text-sm font-semibold text-gray-600">Ngày tạo</th>
             <th className="py-4 px-4 text-sm font-semibold text-gray-600 text-right">Thao tác</th>

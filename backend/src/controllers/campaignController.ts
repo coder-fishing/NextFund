@@ -4,6 +4,8 @@ import { AuthRequest } from "../middleware/auth.js"
 import User from "../models/User.js"
 import Wallet from "../models/Wallet.js"
 import Donation from "../models/Donation.js"
+import { moderateCampaign } from "../services/moderationService.js"
+import SystemSetting from "../models/SystemSetting.js"
 
 interface CreateCampaignBody {
   title?: string
@@ -82,6 +84,21 @@ export const createCampaign = async (
       return
     }
 
+    // Check if AI moderation is enabled
+    const aiSetting = await SystemSetting.findOne({ key: "ai_moderation_enabled" });
+    const isAiEnabled = aiSetting ? aiSetting.value === true : true;
+    
+    console.log(`[Moderation] New campaign request from ${creator}. AI enabled: ${isAiEnabled}`);
+
+    let moderation = { status: "pending", aiPrediction: "manual", aiTrustScore: null as number | null, aiReasons: [] as string[] };
+    
+    if (isAiEnabled) {
+      moderation = await moderateCampaign(title, description, Number(goalAmount));
+      console.log(`[AI Result] Prediction: ${moderation.aiPrediction}, Score: ${moderation.aiTrustScore}, Assigned Status: ${moderation.status}`);
+    } else {
+      console.log(`[Moderation] AI disabled. Defaulting to PENDING for manual review.`);
+    }
+
     const campaign = await Campaign.create({
       title,
       description,
@@ -91,8 +108,13 @@ export const createCampaign = async (
       image: Array.isArray(image) ? image : [],
       creator,
       receiveWalletAddress: normalizedReceiveWalletAddress,
-      status: "approved",
+      status: moderation.status,
+      aiPrediction: moderation.aiPrediction,
+      aiTrustScore: moderation.aiTrustScore,
+      aiReasons: moderation.aiReasons,
     })
+
+    console.log(`[Success] Campaign created: ${campaign._id} with status: ${campaign.status}`);
 
     res.status(201).json({
       message: "Campaign created successfully",

@@ -26,6 +26,9 @@ export type AdminCampaign = {
   creator: string;
   receiveWalletAddress: string;
   status: string;
+  aiPrediction?: string;
+  aiTrustScore?: number;
+  aiReasons?: string[];
   endDate: string;
   deletedAt?: string | null;
   createdAt: string;
@@ -115,6 +118,42 @@ export async function getAdminUsers(
       `/api/admin/users?page=${page}&limit=${limit}`,
       { cache: "no-store" }
     );
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+export async function getSystemSetting(key: string): Promise<any> {
+  try {
+    const res = await fetch(`/api/admin/settings/${key}`, { cache: "no-store" });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.setting?.value ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function updateSystemSetting(key: string, value: any): Promise<boolean> {
+  try {
+    const res = await fetch(`/api/admin/settings/${key}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ value }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function bulkModerateCampaigns(): Promise<{ processed: number; approved: number } | null> {
+  try {
+    const res = await fetch("/api/admin/campaigns/bulk-moderate", {
+      method: "POST",
+    });
     if (!res.ok) return null;
     return await res.json();
   } catch {

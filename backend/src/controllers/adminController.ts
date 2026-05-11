@@ -1,8 +1,10 @@
 import { Response } from "express"
-import Campaign from "../models/Campaign.js"
 import User from "../models/User.js"
 import Donation from "../models/Donation.js"
 import { AuthRequest } from "../middleware/auth.js"
+import SystemSetting from "../models/SystemSetting.js"
+import Campaign from "../models/Campaign.js"
+import { moderateCampaign } from "../services/moderationService.js"
 
 // GET /api/admin/stats
 export const getAdminStats = async (
@@ -84,6 +86,7 @@ export const getAdminStats = async (
         active: statusMap.active ?? 0,
         completed: statusMap.completed ?? 0,
         cancelled: statusMap.cancelled ?? 0,
+        manual: statusMap.manual ?? 0,
       },
     })
   } catch (error) {
@@ -102,7 +105,7 @@ export const getAllCampaignsForAdmin = async (
       typeof req.query.status === "string"
         ? req.query.status.trim().toLowerCase()
         : "all"
-    
+
     const page = parseInt(req.query.page as string) || 1
     const limit = parseInt(req.query.limit as string) || 10
     const skip = (page - 1) * limit
@@ -115,6 +118,7 @@ export const getAllCampaignsForAdmin = async (
       "active",
       "completed",
       "cancelled",
+      "manual",
     ]
     if (!validStatuses.includes(statusFilter)) {
       res.status(400).json({ message: "Invalid status filter" })
@@ -131,7 +135,7 @@ export const getAllCampaignsForAdmin = async (
       .limit(limit)
       .lean()
 
-    res.status(200).json({ 
+    res.status(200).json({
       campaigns,
       pagination: {
         total,
@@ -182,7 +186,7 @@ export const getAllUsersForAdmin = async (
       campaignCount: countMap[user.email] ?? 0,
     }))
 
-    res.status(200).json({ 
+    res.status(200).json({
       users: usersWithStats,
       pagination: {
         total,
@@ -194,5 +198,71 @@ export const getAllUsersForAdmin = async (
   } catch (error) {
     console.error("Error fetching admin users:", error)
     res.status(500).json({ message: "Error fetching admin users", error })
+  }
+}
+
+// GET /api/admin/settings/:key
+export const getSystemSetting = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { key } = req.params;
+    const setting = await SystemSetting.findOne({ key });
+    res.status(200).json({ setting });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching setting", error });
+  }
+}
+
+// PATCH /api/admin/settings/:key
+export const updateSystemSetting = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { key } = req.params;
+    const { value } = req.body;
+    const setting = await SystemSetting.findOneAndUpdate(
+      { key },
+      { value },
+      { upsert: true, new: true }
+    );
+    res.status(200).json({ message: "Setting updated", setting });
+  } catch (error) {
+    res.status(500).json({ message: "Error updating setting", error });
+  }
+}
+
+// POST /api/admin/campaigns/bulk-moderate
+export const bulkModerateCampaigns = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    // Process both pending and manual campaigns
+    const pendingCampaigns = await Campaign.find({ 
+      status: { $in: ["pending", "manual"] }, 
+      deletedAt: null 
+    })
+    
+    if (pendingCampaigns.length === 0) {
+      res.status(200).json({ message: "No pending campaigns found", processed: 0 })
+      return
+    }
+
+    let processedCount = 0
+    let approvedCount = 0
+
+    for (const campaign of pendingCampaigns) {
+      const moderation = await moderateCampaign(campaign.title, campaign.description, campaign.goalAmount)
+      
+      campaign.status = moderation.status
+      campaign.aiPrediction = moderation.aiPrediction
+      await campaign.save()
+
+      processedCount++
+      if (moderation.status === "approved") approvedCount++
+    }
+
+    res.status(200).json({ 
+      message: `Processed ${processedCount} campaigns. ${approvedCount} approved.`,
+      processed: processedCount,
+      approved: approvedCount
+    })
+  } catch (error) {
+    console.error("Bulk moderation error:", error)
+    res.status(500).json({ message: "Error during bulk moderation", error })
   }
 }
