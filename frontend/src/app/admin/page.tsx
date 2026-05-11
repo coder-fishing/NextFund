@@ -9,6 +9,9 @@ import {
   getAdminCampaigns,
   getAdminUsers,
   updateCampaignStatus as apiUpdateStatus,
+  getSystemSetting,
+  updateSystemSetting,
+  bulkModerateCampaigns,
   type AdminStats,
   type AdminCampaign,
   type AdminUser,
@@ -23,7 +26,7 @@ import { Pagination } from '@/components/Admin/Pagination';
 import { AdminCharts } from '@/components/Admin/AdminCharts';
 
 type Tab = 'campaigns' | 'users';
-type StatusFilter = 'all' | 'pending' | 'approved' | 'rejected';
+type StatusFilter = 'all' | 'pending' | 'approved' | 'rejected' | 'manual';
 
 export default function AdminDashboard() {
   const { data: session, status: authStatus } = useSession();
@@ -59,6 +62,11 @@ export default function AdminDashboard() {
 
   const [userPage, setUserPage] = useState(1);
   const [loadingUsers, setLoadingUsers] = useState(true);
+
+  // Settings State
+  const [isAiEnabled, setIsAiEnabled] = useState<boolean | null>(null);
+  const [togglingAi, setTogglingAi] = useState(false);
+  const [isBulkProcessing, setIsBulkProcessing] = useState(false);
 
   // Auth Guard
   useEffect(() => {
@@ -128,6 +136,11 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (isAdmin) {
       fetchStats();
+
+      // Fetch AI setting
+      getSystemSetting('ai_moderation_enabled').then((val) => {
+        setIsAiEnabled(val !== false); // Default to true if null
+      });
     }
   }, [isAdmin, fetchStats]);
 
@@ -162,10 +175,9 @@ export default function AdminDashboard() {
     status: 'approved' | 'rejected'
   ) => {
     const confirmed = confirm(
-      `Bạn có chắc chắn muốn ${
-        status === 'approved'
-          ? 'DUYỆT'
-          : 'TỪ CHỐI'
+      `Bạn có chắc chắn muốn ${status === 'approved'
+        ? 'DUYỆT'
+        : 'TỪ CHỐI'
       } chiến dịch này?`
     );
 
@@ -187,6 +199,46 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error(error);
       alert('Có lỗi xảy ra.');
+    }
+  };
+
+  const handleToggleAi = async () => {
+    if (isAiEnabled === null || togglingAi) return;
+
+    setTogglingAi(true);
+    const newValue = !isAiEnabled;
+    const success = await updateSystemSetting('ai_moderation_enabled', newValue);
+
+    if (success) {
+      setIsAiEnabled(newValue);
+    } else {
+      alert('Không thể cập nhật cấu hình AI.');
+    }
+    setTogglingAi(false);
+  };
+
+  const handleBulkModerate = async () => {
+    if (isBulkProcessing) return;
+
+    const confirmed = confirm('Bạn có muốn cho AI duyệt hàng loạt tất cả các bài đang chờ (Pending) không?');
+    if (!confirmed) return;
+
+    try {
+      setIsBulkProcessing(true);
+      const res = await bulkModerateCampaigns();
+
+      if (res) {
+        alert(`Đã xử lý xong: ${res.processed} bài. Trong đó có ${res.approved} bài được duyệt tự động.`);
+        fetchStats();
+        fetchCampaigns(campaignStatus, campaignPage);
+      } else {
+        alert('Duyệt hàng loạt thất bại.');
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Có lỗi xảy ra trong quá trình duyệt hàng loạt.');
+    } finally {
+      setIsBulkProcessing(false);
     }
   };
 
@@ -217,6 +269,48 @@ export default function AdminDashboard() {
                 Quản lý hệ thống, phê duyệt chiến dịch và
                 người dùng.
               </p>
+            </div>
+
+            {/* AI Controls */}
+            <div className="flex items-center gap-4">
+              <button
+                onClick={handleBulkModerate}
+                disabled={isBulkProcessing}
+                className={`flex items-center gap-2 px-4 py-2 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100 hover:bg-indigo-100 transition-colors text-xs font-bold ${isBulkProcessing ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+              >
+                {isBulkProcessing ? (
+                  <>
+                    <span className="w-3 h-3 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                    Đang xử lý...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Duyệt AI hàng loạt
+                  </>
+                )}
+              </button>
+
+              <div className="flex items-center gap-4 bg-gray-50 px-4 py-2 rounded-2xl border border-gray-100">
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-gray-700">Tự động duyệt AI</span>
+                  <span className="text-[10px] text-gray-400">Sử dụng AI để duyệt bài mới</span>
+                </div>
+                <button
+                  onClick={handleToggleAi}
+                  disabled={isAiEnabled === null || togglingAi}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${isAiEnabled ? 'bg-emerald-500' : 'bg-gray-300'
+                    } ${togglingAi ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isAiEnabled ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                  />
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -271,22 +365,20 @@ export default function AdminDashboard() {
           <div className="flex border-b border-gray-100">
             <button
               onClick={() => setActiveTab('campaigns')}
-              className={`flex-1 py-5 text-sm font-bold transition-all ${
-                activeTab === 'campaigns'
-                  ? 'text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50/30'
-                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
-              }`}
+              className={`flex-1 py-5 text-sm font-bold transition-all ${activeTab === 'campaigns'
+                ? 'text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50/30'
+                : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+                }`}
             >
               Quản lý Chiến dịch
             </button>
 
             <button
               onClick={() => setActiveTab('users')}
-              className={`flex-1 py-5 text-sm font-bold transition-all ${
-                activeTab === 'users'
-                  ? 'text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50/30'
-                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
-              }`}
+              className={`flex-1 py-5 text-sm font-bold transition-all ${activeTab === 'users'
+                ? 'text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50/30'
+                : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+                }`}
             >
               Danh sách Người dùng
             </button>
@@ -303,6 +395,7 @@ export default function AdminDashboard() {
                       'pending',
                       'approved',
                       'rejected',
+                      'manual',
                     ] as StatusFilter[]
                   ).map((status) => (
                     <button
@@ -311,11 +404,10 @@ export default function AdminDashboard() {
                         setCampaignStatus(status);
                         setCampaignPage(1);
                       }}
-                      className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all border ${
-                        campaignStatus === status
-                          ? 'bg-emerald-600 text-white border-emerald-600'
-                          : 'bg-white text-gray-500 border-gray-200'
-                      }`}
+                      className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all border ${campaignStatus === status
+                        ? 'bg-emerald-600 text-white border-emerald-600'
+                        : 'bg-white text-gray-500 border-gray-200'
+                        }`}
                     >
                       {status.toUpperCase()}
                     </button>

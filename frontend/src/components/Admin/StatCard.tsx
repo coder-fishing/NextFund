@@ -5,7 +5,7 @@ interface StatCardProps {
   value: string | number;
 }
 
-export function StatCard({ label, value, icon }: StatCardProps) {
+export function StatCard({ label, value }: StatCardProps) {
   return (
     <div className={`p-6 rounded-2xl text-green shadow-lg`}>
       <div className="flex items-center justify-between">

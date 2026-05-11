@@ -14,7 +14,10 @@ export interface ICampaign extends Document {
     creator: string,
     receiveWalletAddress: string,
 
-    status: string, // active | completed | cancelled | approved | rejected | pending
+    status: string, // active | completed | cancelled | approved | rejected | pending | manual
+    aiPrediction?: string,
+    aiTrustScore?: number,
+    aiReasons?: string[],
     endDate: Date,
     deletedAt?: Date | null,
 
