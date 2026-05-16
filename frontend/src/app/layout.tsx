@@ -28,7 +28,7 @@ export default async function RootLayout({
       <body className={`${mulish.className} antialiased`}>
         <AuthSessionProvider session={session}>
           <Navbar />
-          <main className="min-h-[calc(100vh-4rem)]">
+          <main className="min-h-[calc(100vh-4rem)] dark:bg-[#1C1C1D]">
             {children}
           </main>
           <Footer /> 
