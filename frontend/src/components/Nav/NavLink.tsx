@@ -41,7 +41,7 @@ export const NavLink = ({ item, pathname }: NavLinkProps) => {
   return (
     <Link
       href={item.href}
-      className={`px-2 py-1 rounded-full transition-colors ${
+      className={`px-2 py-1 rounded-full transition-colors dark:text-[#B0B3B8] ${
         isActive ? active : inactive
       }`}
     >

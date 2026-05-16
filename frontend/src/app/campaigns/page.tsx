@@ -54,10 +54,10 @@ export default function CampaignsPage() {
   const heroCopy = heroCopyByCategory[category];
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="mb-14 grid grid-cols-1 items-center gap-8 rounded-3xl bg-slate-50 p-6 sm:p-8 lg:grid-cols-2 lg:p-12">
+    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 ">
+      <div className="mb-14 grid grid-cols-1 items-center gap-8 rounded-3xl bg-slate-50 p-6 sm:p-8 lg:grid-cols-2 lg:p-12 dark:bg-[#252728]">
         <div>
-          <h1 className="text-4xl font-bold leading-tight text-slate-900 sm:text-5xl">
+          <h1 className="text-4xl font-bold leading-tight text-slate-900 sm:text-5xl dark:text-[#B0B3B8]">
             {heroCopy.title}
           </h1>
           <p className="mt-4 max-w-xl text-lg text-slate-600">{heroCopy.subtitle}</p>
@@ -83,7 +83,7 @@ export default function CampaignsPage() {
       </div>
 
       <div className="mb-6">
-        <h2 className="mb-2 text-2xl font-bold text-slate-900">Browse fundraisers</h2>
+        <h2 className="mb-2 text-2xl font-bold text-slate-900 dark:text-[#E6EBEF] ">Browse fundraisers</h2>
         <p className="text-slate-600">Filter by category or search by title and description.</p>
       </div>
 
@@ -105,7 +105,7 @@ export default function CampaignsPage() {
               key={item.value}
               type="button"
               onClick={() => setCategory(item.value)}
-              className="px-4 py-2 text-sm"
+              className="px-4 py-2 text-sm dark:text-[#E6EBEF] dark:bg-[#222222] dark:hover:bg-[#2d2d2d]"
             >
               {item.label}
             </SecondaryButton>
