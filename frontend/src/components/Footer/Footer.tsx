@@ -5,7 +5,7 @@ import { footerColumns, footerLegalLinks } from "@/const/footer";
 
 export const Footer = () => {
 	return (
-		<footer className="border-t bg-white text-sm text-gray-700">
+		<footer className="border-t bg-white text-sm text-gray-700 dark:bg-[#2b2b2b] dark:text-[#E6EBEF]">
 			<div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
 				{/* Top columns */}
 				<div className="grid gap-8 md:grid-cols-4">

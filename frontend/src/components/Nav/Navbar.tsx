@@ -16,40 +16,9 @@ export default function Navbar() {
   const { data: session } = useSession();
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const storedTheme = window.localStorage.getItem('theme');
-    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-    const shouldUseDark = storedTheme === 'dark' || (!storedTheme && prefersDark);
-
-    if (shouldUseDark) {
-      document.documentElement.classList.add('dark');
-      setIsDark(true);
-    } else {
-      document.documentElement.classList.remove('dark');
-      setIsDark(false);
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    const nextIsDark = !isDark;
-    setIsDark(nextIsDark);
-
-    if (nextIsDark) {
-      document.documentElement.classList.add('dark');
-      window.localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      window.localStorage.setItem('theme', 'light');
-    }
-  };
 
   return (
-    <nav className="bg-white/90 backdrop-blur shadow-sm sticky top-0 z-30">
+    <nav className="bg-white/90 dark:bg-[#252728] backdrop-blur shadow-sm sticky top-0 z-30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 gap-6">
           <div className="flex items-center gap-4">
@@ -102,14 +71,14 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-4">
-            <button
+            {/* <button
               type="button"
               onClick={toggleTheme}
               aria-label="Chuyển chế độ sáng/tối"
               className="p-2 hover:cursor-pointer transition-colors text-lg"
             >
               {isDark ? '☀️' : '🌙'}
-            </button>
+            </button> */}
 
             {!session && (
               <Link

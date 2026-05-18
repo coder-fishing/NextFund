@@ -57,9 +57,9 @@ const StepSection: React.FC = () => {
     }, [activeIndex, autoEnabled]);
 
     return (
-        <section className="bg-gray-50 py-16">
+        <section className="bg-gray-50 py-16 dark:bg-[#1C1C1D] ">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <h2 className="max-w-2xl text-2xl font-bold text-gray-800 sm:text-3xl">
+                <h2 className="max-w-2xl text-2xl font-bold text-gray-800 sm:text-3xl dark:text-[#B0B3B8]">
                     Fundraising on NextFund is easy, powerful, and trusted
                 </h2>
 

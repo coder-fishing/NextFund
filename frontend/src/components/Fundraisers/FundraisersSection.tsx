@@ -67,10 +67,10 @@ export const FundraisersSection = () => {
     const [first, ...rest] = campaigns;
 
     return (
-        <section className="py-16 bg-gray-50">
+        <section className="py-16 bg-gray-50 dark:bg-[#1C1C1D] ">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="mb-6 flex items-center justify-between">
-                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-[#B0B3B8]">
                         Outstanding fundraising campaigns
                     </h2>
                     {/* <button className="inline-flex items-center rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50">

@@ -51,7 +51,7 @@ export function UserMenu({ name, email, image }: UserMenuProps) {
           />
         )}
         <div className="hidden sm:block text-xs leading-tight text-right">
-          <p className="font-semibold text-gray-800 truncate max-w-[120px]">{name}</p>
+          <p className="font-semibold text-gray-800 truncate max-w-[120px] dark:text-[#E6EBEF]">{name}</p>
         </div>
         {/* Dropdown arrow icon */}
         <Image

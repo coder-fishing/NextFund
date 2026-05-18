@@ -32,7 +32,7 @@ export const TopicCard = ({
 }: TopicCardProps) => {
 	if (variant === "hero") {
 		return (
-			<article className="overflow-hidden rounded-lg bg-white shadow-sm flex flex-col md:flex-row">
+			<article className="overflow-hidden rounded-lg bg-white shadow-sm flex flex-col md:flex-row dark:bg-[#2b2b2b] dark:text-[#E6EBEF] ">
 				{/* Ảnh bên trái */}
 				<div className="relative w-full md:w-1/2 h-[240px] md:h-[320px] bg-[#DCFCE7] rounded-lg overflow-hidden">
 					<Image
