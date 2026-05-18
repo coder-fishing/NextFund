@@ -220,7 +220,7 @@ export default function AdminDashboard() {
   const handleBulkModerate = async () => {
     if (isBulkProcessing) return;
 
-    const confirmed = confirm('Bạn có muốn cho AI duyệt hàng loạt tất cả các bài đang chờ (Pending) không?');
+    const confirmed = confirm('Are you sure you want to let AI moderate all pending campaigns?');
     if (!confirmed) return;
 
     try {
@@ -228,15 +228,15 @@ export default function AdminDashboard() {
       const res = await bulkModerateCampaigns();
 
       if (res) {
-        alert(`Đã xử lý xong: ${res.processed} bài. Trong đó có ${res.approved} bài được duyệt tự động.`);
+        alert(`Processing completed: ${res.processed} campaigns. This includes ${res.approved} campaigns approved automatically.`);
         fetchStats();
         fetchCampaigns(campaignStatus, campaignPage);
       } else {
-        alert('Duyệt hàng loạt thất bại.');
+        alert('Bulk moderation failed.');
       }
     } catch (error) {
       console.error(error);
-      alert('Có lỗi xảy ra trong quá trình duyệt hàng loạt.');
+      alert('An error occurred while processing the bulk moderation.');
     } finally {
       setIsBulkProcessing(false);
     }
@@ -266,8 +266,7 @@ export default function AdminDashboard() {
               </h1>
 
               <p className="text-gray-500 mt-1 font-medium">
-                Quản lý hệ thống, phê duyệt chiến dịch và
-                người dùng.
+                Manage the system, approve campaigns and users.
               </p>
             </div>
 
@@ -282,22 +281,22 @@ export default function AdminDashboard() {
                 {isBulkProcessing ? (
                   <>
                     <span className="w-3 h-3 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-                    Đang xử lý...
+                    Processing...
                   </>
                 ) : (
                   <>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
-                    Duyệt AI hàng loạt
+                    Bulk AI Moderation
                   </>
                 )}
               </button>
 
               <div className="flex items-center gap-4 bg-gray-50 px-4 py-2 rounded-2xl border border-gray-100">
                 <div className="flex flex-col">
-                  <span className="text-xs font-bold text-gray-700">Tự động duyệt AI</span>
-                  <span className="text-[10px] text-gray-400">Sử dụng AI để duyệt bài mới</span>
+                  <span className="text-xs font-bold text-gray-700">Auto-moderate with AI</span>
+                  <span className="text-[10px] text-gray-400">Use AI to moderate new campaigns</span>
                 </div>
                 <button
                   onClick={handleToggleAi}
@@ -320,7 +319,7 @@ export default function AdminDashboard() {
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
           <StatCard
-            label="Tổng Campaign"
+            label="Total Campaigns"
             value={
               loadingStats && !stats
                 ? '...'
@@ -329,7 +328,7 @@ export default function AdminDashboard() {
           />
 
           <StatCard
-            label="Hoàn thành 100%"
+            label="Completed 100%"
             value={
               loadingStats && !stats
                 ? '...'
@@ -338,7 +337,7 @@ export default function AdminDashboard() {
           />
 
           <StatCard
-            label="Tổng ETH đạt được"
+            label="Total ETH Achieved"
             value={
               loadingStats && !stats
                 ? '...'
@@ -347,7 +346,7 @@ export default function AdminDashboard() {
           />
 
           <StatCard
-            label="% Đạt được TB"
+            label="Average Goal Percentage"
             value={
               loadingStats && !stats
                 ? '...'
@@ -370,7 +369,7 @@ export default function AdminDashboard() {
                 : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
                 }`}
             >
-              Quản lý Chiến dịch
+              Manage Campaigns
             </button>
 
             <button
@@ -380,7 +379,7 @@ export default function AdminDashboard() {
                 : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
                 }`}
             >
-              Danh sách Người dùng
+              User List
             </button>
           </div>
 

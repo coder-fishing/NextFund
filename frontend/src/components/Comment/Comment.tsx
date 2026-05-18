@@ -35,7 +35,7 @@ export const Comment = ({ campaignId }: Props) => {
           setPage(1);
         }
       } catch {
-        if (!cancelled) setError("Khong tai duoc comments.");
+        if (!cancelled) setError("Can't load comments.");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -62,7 +62,7 @@ export const Comment = ({ campaignId }: Props) => {
       setHasMore(result.hasMore);
       setPage(nextPage);
     } catch {
-      setError("Khong tai them duoc comments.");
+      setError("Can't load more comments.");
     } finally {
       setLoadingMore(false);
     }
@@ -79,14 +79,14 @@ export const Comment = ({ campaignId }: Props) => {
       const created = await createCampaignComment({ campaignId, content });
 
       if (!created) {
-        setError("Gui comment that bai.");
+        setError("Failed to submit comment.");
         return;
       }
 
       setComments((prev) => [created, ...prev]);
       setNewComment("");
     } catch {
-      setError("Gui comment that bai.");
+      setError("Failed to submit comment.");
     } finally {
       setSubmitting(false);
     }
@@ -95,9 +95,9 @@ export const Comment = ({ campaignId }: Props) => {
   return (
     <div className="mt-10 w-full rounded-2xl border border-slate-200 bg-white">
       <div className="comment-input-scrollbar max-h-125 space-y-4 overflow-y-auto p-4">
-        {loading && <p className="text-sm text-slate-500">Dang tai comments...</p>}
+        {loading && <p className="text-sm text-slate-500">Loading comments...</p>}
         {!loading && comments.length === 0 && (
-          <p className="text-sm text-slate-500">Chua co comment nao.</p>
+          <p className="text-sm text-slate-500">No comments yet.</p>
         )}
         {comments.map((item) => (
           <CommentMessage
@@ -118,7 +118,7 @@ export const Comment = ({ campaignId }: Props) => {
             disabled={loadingMore}
             className="text-sm font-medium text-slate-700 underline underline-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {loadingMore ? "Dang tai them..." : "Read more"}
+            {loadingMore ? "Loading more..." : "Read more"}
           </button>
         </div>
       )}

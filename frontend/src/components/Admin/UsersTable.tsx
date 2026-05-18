@@ -20,7 +20,7 @@ export function UsersTable({ users, isLoading }: UsersTableProps) {
   if (users.length === 0) {
     return (
       <div className="py-20 text-center text-gray-500">
-        Không tìm thấy người dùng nào.
+       No users found.
       </div>
     );
   }

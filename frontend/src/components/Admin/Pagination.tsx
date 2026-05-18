@@ -39,7 +39,7 @@ export function Pagination({
         disabled={currentPage === 1}
         className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
-        Trước
+        Previous
       </button>
 
       {filteredPages.map((page, index) =>
@@ -67,7 +67,7 @@ export function Pagination({
         disabled={currentPage === totalPages}
         className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
-        Sau
+        next
       </button>
     </div>
   );

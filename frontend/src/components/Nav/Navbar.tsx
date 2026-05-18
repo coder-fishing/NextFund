@@ -116,7 +116,7 @@ export default function Navbar() {
                 href="/login"
                 className="hidden md:inline-flex items-center px-4 py-1.5 rounded-full text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors"
               >
-                Đăng nhập
+                Log In
               </Link>
             )}
 
@@ -190,7 +190,7 @@ export default function Navbar() {
                   onClick={() => setIsOpen(false)}
                   className="block w-full px-3 py-2 rounded-md text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors text-center"
                 >
-                  Đăng nhập
+                  Log In
                 </Link>
               </>
             )}
