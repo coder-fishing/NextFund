@@ -203,7 +203,7 @@ export async function exportCampaignStatementCsv(id: string): Promise<void> {
   });
 
   if (!res.ok) {
-    throw new Error("Khong the xuat sao ke CSV");
+    throw new Error("Unable to export CSV file");
   }
 
   const blob = await res.blob();

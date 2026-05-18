@@ -12,8 +12,8 @@ const mulish = Mulish({
 });
 
 export const metadata: Metadata = {
-  title: "MyApp - Đăng nhập với Google/Facebook",
-  description: "Ứng dụng Next.js với OAuth authentication",
+  title: "MyApp - Log in with Google/Facebook",
+  description: "Next.js application with OAuth authentication",
 };
 
 export default async function RootLayout({
@@ -24,7 +24,7 @@ export default async function RootLayout({
   const session = await auth();
   
   return (
-    <html lang="vi">
+    <html lang="en">
       <body className={`${mulish.className} antialiased`}>
         <AuthSessionProvider session={session}>
           <Navbar />

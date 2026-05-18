@@ -47,7 +47,7 @@ export function CampaignsTable({
   if (campaigns.length === 0) {
     return (
       <div className="py-20 text-center text-gray-500">
-        Không có chiến dịch nào được tìm thấy.
+       No campaigns were found.
       </div>
     );
   }
@@ -57,11 +57,11 @@ export function CampaignsTable({
       <table className="w-full text-left border-collapse">
         <thead>
           <tr className="border-b border-gray-100 bg-gray-50/50">
-            <th className="py-4 px-4 text-sm font-semibold text-gray-600">Thông tin</th>
-            <th className="py-4 px-4 text-sm font-semibold text-gray-600">Phân tích AI</th>
-            <th className="py-4 px-4 text-sm font-semibold text-gray-600">Tiến độ</th>
-            <th className="py-4 px-4 text-sm font-semibold text-gray-600">Ngày tạo</th>
-            <th className="py-4 px-4 text-sm font-semibold text-gray-600 text-right">Thao tác</th>
+            <th className="py-4 px-4 text-sm font-semibold text-gray-600">Information</th>
+            <th className="py-4 px-4 text-sm font-semibold text-gray-600">AI Analysis</th>
+            <th className="py-4 px-4 text-sm font-semibold text-gray-600">Progress</th>
+            <th className="py-4 px-4 text-sm font-semibold text-gray-600">Created Date</th>
+            <th className="py-4 px-4 text-sm font-semibold text-gray-600 text-right">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -116,13 +116,13 @@ export function CampaignsTable({
                         onClick={() => onStatusUpdate(c._id, 'approved')}
                         className="px-3 py-1.5 bg-emerald-50 text-emerald-600 rounded-lg text-xs font-bold hover:bg-emerald-600 hover:text-white transition-all border border-emerald-100"
                       >
-                        Duyệt
+                        Approve
                       </button>
                       <button
                         onClick={() => onStatusUpdate(c._id, 'rejected')}
                         className="px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-xs font-bold hover:bg-red-600 hover:text-white transition-all border border-red-100"
                       >
-                        Từ chối
+                        Rejected
                       </button>
                     </>
                   )}

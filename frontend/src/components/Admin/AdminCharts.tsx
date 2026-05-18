@@ -34,19 +34,19 @@ export function AdminCharts({ stats }: AdminChartsProps) {
 
   // Data for Status Pie Chart
   const statusData = [
-    { name: 'Chờ duyệt', value: stats.statusBreakdown.pending, color: COLORS.pending },
-    { name: 'Đã duyệt', value: stats.statusBreakdown.approved, color: COLORS.approved },
-    { name: 'Từ chối', value: stats.statusBreakdown.rejected, color: COLORS.rejected },
-    { name: 'Đang chạy', value: stats.statusBreakdown.active, color: COLORS.active },
-    { name: 'Hoàn thành', value: stats.statusBreakdown.completed, color: COLORS.completed },
-    { name: 'Đã hủy', value: stats.statusBreakdown.cancelled, color: COLORS.cancelled },
+    { name: 'Pending', value: stats.statusBreakdown.pending, color: COLORS.pending },
+    { name: 'Approved', value: stats.statusBreakdown.approved, color: COLORS.approved },
+    { name: 'Rejected', value: stats.statusBreakdown.rejected, color: COLORS.rejected },
+    { name: 'Active', value: stats.statusBreakdown.active, color: COLORS.active },
+    { name: 'Completed', value: stats.statusBreakdown.completed, color: COLORS.completed },
+    { name: 'Cancelled', value: stats.statusBreakdown.cancelled, color: COLORS.cancelled },
   ].filter((item) => item.value > 0);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
       {/* Status Distribution Chart */}
       <div className="bg-white p-6 rounded-3xl shadow-xl border border-gray-100">
-        <h3 className="text-lg font-bold text-gray-800 mb-6">Trạng thái Chiến dịch</h3>
+        <h3 className="text-lg font-bold text-gray-800 mb-6">Campaign Status</h3>
         <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -74,15 +74,15 @@ export function AdminCharts({ stats }: AdminChartsProps) {
 
       {/* Summary Bar Chart */}
       <div className="bg-white p-6 rounded-3xl shadow-xl border border-gray-100">
-        <h3 className="text-lg font-bold text-gray-800 mb-6">Thống kê Tổng quan</h3>
+        <h3 className="text-lg font-bold text-gray-800 mb-6">Overview Statistics</h3>
         <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={[
-                { name: 'Chiến dịch', count: stats.totalCampaigns },
-                { name: 'Người dùng', count: stats.totalUsers },
-                { name: 'Quyên góp', count: stats.totalDonations },
-                { name: 'Hoàn thành', count: stats.completedGoalCount },
+                { name: 'Campaigns', count: stats.totalCampaigns },
+                { name: 'Users', count: stats.totalUsers },
+                { name: 'Donations', count: stats.totalDonations },
+                { name: 'Completed', count: stats.completedGoalCount },
               ]}
               margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
             >

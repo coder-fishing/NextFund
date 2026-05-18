@@ -11,17 +11,17 @@ export function HeroContent() {
 
 			<div className="space-y-4">
 				<h1 className="text-balance text-4xl font-semibold leading-tight sm:text-5xl md:text-6xl">
-					NextFund giúp bạn
+					NextFund helps you 
 					<span className="bg-gradient-to-r from-emerald-300 via-sky-300 to-blue-300 bg-clip-text text-transparent">
 						{' '}
-						gây quỹ minh bạch
+						raise funds transparently
 					</span>
-					{' '}cho mọi hoàn cảnh.
+					{' '}for any situation.
 				</h1>
 				<p className="max-w-xl text-sm text-slate-300 sm:text-base">
-					Kết nối mạnh thường quân với các chiến dịch cộng đồng, từ y tế khẩn cấp
-					đến môi trường và giáo dục. Mỗi khoản đóng góp đều được theo dõi rõ ràng,
-					bảo đảm số tiền đến đúng nơi cần.
+					Connecting donors with community campaigns, from emergency healthcare
+					to the environment and education. Every donation is clearly tracked,
+					ensuring the money reaches where it's needed.
 				</p>
 			</div>
 
@@ -30,13 +30,13 @@ export function HeroContent() {
 					href="/campaigns"
 					className="inline-flex items-center justify-center rounded-full bg-emerald-500 px-7 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-emerald-500/40 hover:bg-emerald-400 transition-colors"
 				>
-					Bắt đầu ủng hộ
+					Start Supporting
 				</Link>
 				<Link
 					href="/about"
 					className="inline-flex items-center justify-center rounded-full border border-slate-700 bg-slate-900/40 px-7 py-2.5 text-sm font-semibold text-slate-100 hover:border-slate-500 hover:bg-slate-800/80 transition-colors"
 				>
-					Tìm hiểu thêm
+					Learn More
 				</Link>
 			</div>
 

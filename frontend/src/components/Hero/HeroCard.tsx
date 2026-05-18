@@ -29,8 +29,8 @@ export function HeroCard() {
 				<div className="mb-5 rounded-2xl border border-slate-800 bg-slate-900/60 p-3 text-xs text-slate-300">
 					<p className="font-medium text-slate-100">PureStream: Water Access for Omo Valley</p>
 					<p className="mt-1 text-[11px] text-slate-400">
-						Xây dựng hệ thống lọc nước bền vững cho các cộng đồng khó khăn,
-						mỗi giao dịch đều được ghi lại trên blockchain.
+						Building sustainable water filtration systems for disadvantaged communities,
+						every transaction is recorded on the blockchain.
 					</p>
 				</div>
 

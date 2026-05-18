@@ -41,7 +41,7 @@ export default function MyCampaingsPage() {
             const data = await getMyCampaigns(nextFilter);
             setCampaigns(data);
         } catch {
-            setError("Khong the tai danh sach campaign. Vui long thu lai.");
+            setError("Unable to load campaign list. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -77,7 +77,7 @@ export default function MyCampaingsPage() {
     };
 
     const handleDelete = async (campaignId: string) => {
-        const accepted = window.confirm("Ban chac chan muon xoa campaign nay?");
+        const accepted = window.confirm("Are you sure you want to delete this campaign?");
         if (!accepted) {
             return;
         }
@@ -87,7 +87,7 @@ export default function MyCampaingsPage() {
         setDeletingId(null);
 
         if (!deleted) {
-            setError("Xoa campaign that bai. Vui long thu lai.");
+            setError("Failed to delete campaign. Please try again.");
             return;
         }
 
@@ -101,7 +101,7 @@ export default function MyCampaingsPage() {
         try {
             await exportCampaignStatementCsv(campaignId);
         } catch {
-            setError("Khong the xuat sao ke CSV. Vui long thu lai.");
+            setError("Unable to export CSV file. Please try again.");
         } finally {
             setExportingId(null);
         }
@@ -162,7 +162,7 @@ export default function MyCampaingsPage() {
 
             {!loading && !error && campaigns.length === 0 && (
                 <div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500">
-                    Khong co campaign nao phu hop voi bo loc nay.
+                    No campaigns are suitable for this filter.
                 </div>
             )}
 

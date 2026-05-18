@@ -67,6 +67,7 @@ export const FundraiserCard = ({
                 <img
                     src={image}
                     alt={title}
+
                     className={`
                         w-full
                         object-cover
@@ -74,7 +75,7 @@ export const FundraiserCard = ({
                         duration-300
                         group-hover:scale-105
 
-                        ${isLarge ? 'h-full' : 'h-[160px] sm:h-[180px]'}
+                        ${isLarge ? 'h-[160px] sm:h-[465px]' : 'h-[160px] sm:h-[180px]'}
                     `}
                 />
 

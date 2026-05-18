@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (!response.ok) {
-        throw new Error('Đăng nhập thất bại');
+        throw new Error('Login failed');
       }
 
       const data = await response.json();
