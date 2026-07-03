@@ -173,7 +173,7 @@ export default function AdminDashboard() {
   const handleStatusUpdate = async (
     id: string,
     status: 'approved' | 'rejected'
-  ) => {
+  ): Promise<boolean> => {
     const confirmed = confirm(
       `Bạn có chắc chắn muốn ${status === 'approved'
         ? 'DUYỆT'
@@ -181,14 +181,14 @@ export default function AdminDashboard() {
       } chiến dịch này?`
     );
 
-    if (!confirmed) return;
+    if (!confirmed) return false;
 
     try {
       const success = await apiUpdateStatus(id, status);
 
       if (!success) {
         alert('Cập nhật trạng thái thất bại.');
-        return;
+        return false;
       }
 
       // Refresh stats
@@ -196,9 +196,11 @@ export default function AdminDashboard() {
 
       // Refresh current campaigns page
       fetchCampaigns(campaignStatus, campaignPage);
+      return true;
     } catch (error) {
       console.error(error);
       alert('Có lỗi xảy ra.');
+      return false;
     }
   };
 

@@ -409,117 +409,117 @@ export const deleteCampaign = async (req: AuthRequest, res: Response): Promise<v
 
 // Export
 
-export const exportCampaignsStatement = async (req: AuthRequest, res: Response): Promise<void> => {
-    try {
-        const userEmail = req.user?.email
-        const { campaignId } = req.params
-    const format = String(req.query.format ?? "csv").toLowerCase().trim()
-        
-        if (!userEmail) {
-            res.status(401).json({ message: "Invalid user context" })
-            return
-        }
-
-    if (format !== "csv") {
-      res.status(400).json({ message: "Only csv format is supported" })
-            return
-        }
-
-        const campaign = await Campaign.findOne({ _id: campaignId, creator: userEmail, deletedAt: null })
-        if (!campaign) {
-            res.status(404).json({ message: "Campaign not found" })
-            return
-        }
-
-        const donations = await Donation.find({ campaignId: campaign._id })
-            .populate("userId", "name email")
-            .sort({ createdAt: -1 })
-            .lean()
-
-        const rows = donations.map((d: any, idx) => ({
-            stt: idx + 1,
-            donorName: d?.userId?.name ?? "Anonymous",
-            donorEmail: d?.userId?.email ?? "",
-            walletAddress: d.walletAddress ?? "",
-            amountEth: d.amountEth ?? "0",
-            txHash: d.txHash ?? "",
-            donatedAt: d.createdAt
-              ? new Date(d.createdAt).toLocaleString("vi-VN", {
-                  year: "numeric",
-                  month: "2-digit",
-                  day: "2-digit",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  second: "2-digit",
-                  hour12: false,
-                })
-              : "",
-        }))
-
-        const uniqueDonorKeys = new Set(
-          donations.map((d: any) => String(d?.userId?._id ?? d.walletAddress ?? ""))
-        )
-        const uniqueDonorsCount = Array.from(uniqueDonorKeys).filter(Boolean).length
-
-        const totalAmountEth = donations
-          .reduce((sum: number, d: any) => sum + Number(d?.amountEth ?? "0"), 0)
-          .toFixed(6)
-
-        const delimiter = ";"
-        const generatedAt = new Date().toLocaleString("vi-VN", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          hour12: false,
-        })
-
-        const escapeCsv = (value: string): string => {
-          const safe = String(value ?? "").replace(/\r?\n/g, " ")
-          if (safe.includes(delimiter) || safe.includes('"')) {
-            return `"${safe.replace(/"/g, '""')}"`
+  export const exportCampaignsStatement = async (req: AuthRequest, res: Response): Promise<void> => {
+      try {
+          const userEmail = req.user?.email
+          const { campaignId } = req.params
+      const format = String(req.query.format ?? "csv").toLowerCase().trim()
+          
+          if (!userEmail) {
+              res.status(401).json({ message: "Invalid user context" })
+              return
           }
-          return safe
-        }
 
-        const header = ["STT", "Donor Name", "Email", "Wallet Address", "Amount (ETH)", "Transaction Hash", "Donated At"]
-        const lines: string[][] = [
-          ["sep=;"],
-          ["Statement", campaign.title ?? ""],
-          ["Generated Date", generatedAt],
-          ["Total Donations", String(rows.length)],
-          [],
-          header,
-          ...rows.map((row) => [
-            String(row.stt),
-            row.donorName,
-            row.donorEmail,
-            row.walletAddress,
-            row.amountEth,
-            row.txHash,
-            row.donatedAt,
-          ]),
-          [],
-          ["Total Unique Donors", String(uniqueDonorsCount)],
-          ["Total Amount Donated (ETH)", totalAmountEth],
-        ]
+      if (format !== "csv") {
+        res.status(400).json({ message: "Only csv format is supported" })
+              return
+          }
 
-        const csvBody = lines
-          .map((line) => line.map((cell) => escapeCsv(String(cell))).join(delimiter))
-          .join("\r\n")
+          const campaign = await Campaign.findOne({ _id: campaignId, creator: userEmail, deletedAt: null })
+          if (!campaign) {
+              res.status(404).json({ message: "Campaign not found" })
+              return
+          }
 
-        const csv = `\uFEFF${csvBody}`
+          const donations = await Donation.find({ campaignId: campaign._id })
+              .populate("userId", "name email")
+              .sort({ createdAt: -1 })
+              .lean()
 
-        const fileName = `campaign-${campaign._id}-statement.csv`
-        res.setHeader("Content-Type", "text/csv; charset=utf-8")
-        res.setHeader("Content-Disposition", `attachment; filename=\"${fileName}\"`)
-        res.send(Buffer.from(csv, "utf-8"))
-        return
+          const rows = donations.map((d: any, idx) => ({
+              stt: idx + 1,
+              donorName: d?.userId?.name ?? "Anonymous",
+              donorEmail: d?.userId?.email ?? "",
+              walletAddress: d.walletAddress ?? "",
+              amountEth: d.amountEth ?? "0",
+              txHash: d.txHash ?? "",
+              donatedAt: d.createdAt
+                ? new Date(d.createdAt).toLocaleString("vi-VN", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                    hour12: false,
+                  })
+                : "",
+          }))
 
-    } catch (error) {
-        console.error("Error exporting campaign statement:", error)
-        res.status(500).json({ message: "Error exporting campaign statement", error })
-    }
-}
+          const uniqueDonorKeys = new Set(
+            donations.map((d: any) => String(d?.userId?._id ?? d.walletAddress ?? ""))
+          )
+          const uniqueDonorsCount = Array.from(uniqueDonorKeys).filter(Boolean).length
+
+          const totalAmountEth = donations
+            .reduce((sum: number, d: any) => sum + Number(d?.amountEth ?? "0"), 0)
+            .toFixed(6)
+
+          const delimiter = ";"
+          const generatedAt = new Date().toLocaleString("vi-VN", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: false,
+          })
+
+          const escapeCsv = (value: string): string => {
+            const safe = String(value ?? "").replace(/\r?\n/g, " ")
+            if (safe.includes(delimiter) || safe.includes('"')) {
+              return `"${safe.replace(/"/g, '""')}"`
+            }
+            return safe
+          }
+
+          const header = ["STT", "Donor Name", "Email", "Wallet Address", "Amount (ETH)", "Transaction Hash", "Donated At"]
+          const lines: string[][] = [
+            ["sep=;"],
+            ["Statement", campaign.title ?? ""],
+            ["Generated Date", generatedAt],
+            ["Total Donations", String(rows.length)],
+            [],
+            header,
+            ...rows.map((row) => [
+              String(row.stt),
+              row.donorName,
+              row.donorEmail,
+              row.walletAddress,
+              row.amountEth,
+              row.txHash,
+              row.donatedAt,
+            ]),
+            [],
+            ["Total Unique Donors", String(uniqueDonorsCount)],
+            ["Total Amount Donated (ETH)", totalAmountEth],
+          ]
+
+          const csvBody = lines
+            .map((line) => line.map((cell) => escapeCsv(String(cell))).join(delimiter))
+            .join("\r\n")
+
+          const csv = `\uFEFF${csvBody}`
+
+          const fileName = `campaign-${campaign._id}-statement.csv`
+          res.setHeader("Content-Type", "text/csv; charset=utf-8")
+          res.setHeader("Content-Disposition", `attachment; filename=\"${fileName}\"`)
+          res.send(Buffer.from(csv, "utf-8"))
+          return
+
+      } catch (error) {
+          console.error("Error exporting campaign statement:", error)
+          res.status(500).json({ message: "Error exporting campaign statement", error })
+      }
+  }

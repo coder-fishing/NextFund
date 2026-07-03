@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AdminCampaign } from '@/services/adminService';
+import { CampaignDetailModal } from './CampaignDetailModal';
 
 interface CampaignsTableProps {
   campaigns: AdminCampaign[];
-  onStatusUpdate: (id: string, status: 'approved' | 'rejected') => void;
+  onStatusUpdate: (id: string, status: 'approved' | 'rejected') => Promise<boolean> | void;
   isLoading: boolean;
 }
 
@@ -34,6 +35,8 @@ export function CampaignsTable({
   onStatusUpdate,
   isLoading,
 }: CampaignsTableProps) {
+  const [selectedCampaign, setSelectedCampaign] = useState<AdminCampaign | null>(null);
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -126,7 +129,11 @@ export function CampaignsTable({
                       </button>
                     </>
                   )}
-                  <button className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+                  <button
+                    onClick={() => setSelectedCampaign(c)}
+                    className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+                    title="Xem chi tiết"
+                  >
                     <svg
                       className="w-4 h-4"
                       fill="none"
@@ -153,6 +160,15 @@ export function CampaignsTable({
           ))}
         </tbody>
       </table>
+
+      {selectedCampaign && (
+        <CampaignDetailModal
+          campaign={selectedCampaign}
+          isOpen={!!selectedCampaign}
+          onClose={() => setSelectedCampaign(null)}
+          onStatusUpdate={onStatusUpdate}
+        />
+      )}
     </div>
   );
 }

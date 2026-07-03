@@ -11,6 +11,7 @@ import { formatDate } from "@/utils/campaignFormat";
 import { ethers } from "ethers";
 import { DONATION_CONTRACT_ADDRESS, DONATION_CONTRACT_ABI } from "@/const/donationContract";
 import {Comment} from "@/components/Comment/Comment";
+
 import { DonateQrCard } from "@/components/Donate/DonateQrCard";
 
 type DetailState = {

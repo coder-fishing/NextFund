@@ -1,11 +1,15 @@
 
+import { useRouter } from "next/navigation";
 import { PrimaryButton } from "../Button/PrimaryButton";
 import { SecondaryButton } from "../Button/SecondaryButton";
 import { ImageRound } from "./ImageRound";
 import { heroItems } from "@/const/imageRound";
 
 
+
 export function HeroSection() {
+	const router = useRouter();
+
 	return (
 		<section className="relative overflow-hidden bg-white px-4 py-20 text-slate-900 height-full">
 			<div className="pointer-events-none absolute inset-0">
@@ -45,7 +49,11 @@ export function HeroSection() {
 					Create your own campaign in minutes – with intuitive tools, guided content, and step-by-step instructions to tell a story that resonates with everyone.
 				</p>
 				<div className="flex flex-wrap items-center justify-center gap-4">
-					<PrimaryButton>Start Your Campaign</PrimaryButton>
+					<PrimaryButton
+						onClick={() => {
+							router.push("/campaigns/create");
+						}}
+					>Start Your Campaign</PrimaryButton>
 					<SecondaryButton>Explore Stories</SecondaryButton>
 				</div>
 				<p className="text-xs text-slate-500">

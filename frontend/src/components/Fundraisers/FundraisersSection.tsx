@@ -1,5 +1,5 @@
 'use client';
-
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FundraiserCard } from "./FundraiserCard";
 import { getLatestCampaigns } from "@/services/campaignService";
@@ -20,6 +20,8 @@ const formatDaysAgo = (createdAt?: string) => {
 };
 
 export const FundraisersSection = () => {
+    const router = useRouter();
+
     const [campaigns, setCampaigns] = useState<Campaign[] | null>(null);
 
     useEffect(() => {
@@ -66,6 +68,7 @@ export const FundraisersSection = () => {
 
     const [first, ...rest] = campaigns;
 
+    
     return (
         <section className="py-16 bg-gray-50 dark:bg-[#1C1C1D] ">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -97,20 +100,22 @@ export const FundraisersSection = () => {
                             currentAmount={first.currentAmount}
                             time={formatDaysAgo(first.createdAt)}
                             variant="large"
+                            onClick={() => router.push(`/campaigns/${first._id}`)}
                         />
                     </div>
 
                     {/* 4 card nhỏ bên phải lấp đầy 4 ô còn lại (2x2) */}
                     {rest.slice(0, 4).map((campaign) => (
                         <div key={campaign._id}>
-                            <FundraiserCard
+                                <FundraiserCard
                                 title={campaign.title}
                                 image={campaign.image?.[0] ?? "/placeholder.png"}
                                 goalAmount={campaign.goalAmount}
                                 currentAmount={campaign.currentAmount}
                                 time={formatDaysAgo(campaign.createdAt)}
                                 variant="small"
-                            />
+                                onClick={() => router.push(`/campaigns/${campaign._id}`)}
+                                />  
                         </div>
                     ))}
                 </div>

@@ -21,7 +21,8 @@ export const FundraiserCard = ({
     currentAmount,
     time,
     amountUnit = '$',
-    variant = 'small'
+    variant = 'small',
+    ...props
 }: Props) => {
     const isLarge = variant === 'large';
 
@@ -53,6 +54,7 @@ export const FundraiserCard = ({
 
                 ${isLarge ? 'h-full' : ''}
             `}
+            {...props}
         >
             {/* Image */}
             <div

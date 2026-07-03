@@ -15,7 +15,7 @@ export const PUBLIC_NAV_LINKS: NavLinkItem[] = [
 
 export const PROTECTED_NAV_LINKS: NavLinkItem[] = [
     // { href: '/dashboard', label: 'Dashboard', requiresAuth: true, variant: 'dashboard' },
-  { href: '/wallet', label: 'My Wallet', requiresAuth: true, variant: 'wallet' },
+  // { href: '/wallet', label: 'My Wallet', requiresAuth: true, variant: 'wallet' },
 ];
 
 export const ADMIN_NAV_LINK: NavLinkItem = {
